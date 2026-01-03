@@ -1,30 +1,35 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 
 export default function SmoothScroll() {
+  const pathname = usePathname();
+  const lenisRef = useRef<Lenis | null>(null);
+  const rafRef = useRef<number | null>(null);
+
   useEffect(() => {
-    // Initialize Lenis for ultra-smooth scrolling with weighty feel
+    // Initialize Lenis
     const lenis = new Lenis({
-      duration: 1.4, // Snappier but still cinematic
+      duration: 1.2,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       orientation: "vertical",
       gestureOrientation: "vertical",
       smoothWheel: true,
-      wheelMultiplier: 1.1, // More natural scroll ratio
-      touchMultiplier: 1.5,
-      infinite: false,
+      wheelMultiplier: 1,
+      touchMultiplier: 2,
     });
 
-    // Animation frame loop for Lenis
+    lenisRef.current = lenis;
+
     function raf(time: number) {
       lenis.raf(time);
-      requestAnimationFrame(raf);
+      rafRef.current = requestAnimationFrame(raf);
     }
-    requestAnimationFrame(raf);
+    rafRef.current = requestAnimationFrame(raf);
 
-    // Handle anchor link clicks
+    // Handle anchor links
     const handleClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement;
       const anchor = target.closest('a[href^="#"]');
@@ -36,7 +41,7 @@ export default function SmoothScroll() {
           const element = document.querySelector(href) as HTMLElement;
           if (element) {
             lenis.scrollTo(element, {
-              offset: -80, // Account for fixed header
+              offset: -80,
               duration: 1.5,
             });
           }
@@ -46,12 +51,19 @@ export default function SmoothScroll() {
 
     document.addEventListener("click", handleClick);
 
-    // Cleanup
     return () => {
       document.removeEventListener("click", handleClick);
+      if (rafRef.current) cancelAnimationFrame(rafRef.current);
       lenis.destroy();
     };
   }, []);
+
+  useEffect(() => {
+    if (lenisRef.current) {
+      lenisRef.current.scrollTo(0, { immediate: true });
+    }
+    window.scrollTo(0, 0);
+  }, [pathname]);
 
   return null;
 }

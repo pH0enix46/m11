@@ -24,9 +24,8 @@ const Navbar = () => {
   }, []);
 
   const navLinks = [
+    { name: "Collection", href: "/products" },
     { name: "Coming Soon", href: "/coming-soon" },
-    { name: "Footwear", href: "/footwear" },
-    { name: "Accessories", href: "/accessories" },
     { name: "About", href: "/about" },
   ];
 
