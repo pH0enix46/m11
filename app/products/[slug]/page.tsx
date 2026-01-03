@@ -50,39 +50,42 @@ const ProductDetailPage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <div className="sticky top-0 z-50 bg-white/80 backdrop-blur-xl border-b border-gray-100">
-        <div className="max-w-7xl mx-auto px-4 h-20 flex items-center justify-between">
+      <div className="sticky top-30 z-40 bg-white/90 backdrop-blur-2xl border-b border-gray-100/50 shadow-sm transition-all duration-300 mt-20">
+        <div className="max-w-8xl mx-auto px-4 md:px-10 lg:px-20 h-24 flex items-center justify-between">
           <button
             onClick={() => router.back()}
-            className="group flex items-center gap-3 text-sm font-bold uppercase tracking-widest text-gray-500 hover:text-black transition-colors"
+            className="group flex items-center gap-3 text-sm font-black uppercase tracking-widest text-gray-600 hover:text-black transition-all duration-300 cursor-pointer"
           >
-            <div className="p-2 rounded-full border border-gray-100 group-hover:border-black transition-colors">
-              <HugeiconsIcon icon={ArrowLeft01Icon} size={20} />
+            <div className="p-2.5 rounded-full border-2 border-gray-100 group-hover:border-black group-hover:bg-black group-hover:text-white transition-all duration-300">
+              <HugeiconsIcon icon={ArrowLeft01Icon} size={18} />
             </div>
             Back
           </button>
 
-          <div className="hidden md:flex items-center gap-2 text-xs font-medium text-gray-400">
-            <Link href="/" className="hover:text-black">
+          <div className="hidden md:flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+            <Link href="/" className="hover:text-black transition-colors">
               Home
             </Link>
-            <span>/</span>
-            <Link href="/products" className="hover:text-black">
+            <span className="opacity-30">/</span>
+            <Link
+              href="/products"
+              className="hover:text-black transition-colors"
+            >
               Collection
             </Link>
-            <span>/</span>
-            <span className="text-black">{product.name}</span>
+            <span className="opacity-30">/</span>
+            <span className="text-black italic">{product.name}</span>
           </div>
 
           <div className="flex items-center gap-4">
-            <div className="font-bold text-lg">
+            <div className="font-bold text-lg text-black">
               ৳{product.discountPrice || product.price}
             </div>
           </div>
         </div>
       </div>
 
-      <main className="max-w-7xl mx-auto px-4 py-8 md:py-16">
+      <main className="max-w-8xl mx-auto px-4 md:px-10 lg:px-20 py-12 md:py-24">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-20">
           {/* Left: Gallery */}
           <div className="lg:col-span-7 space-y-6">
@@ -161,16 +164,16 @@ const ProductDetailPage = () => {
                 </h1>
 
                 <div className="flex items-baseline gap-4">
-                  <span className="text-3xl font-bold text-gray-900">
+                  <span className="text-3xl md:text-4xl font-black text-gray-950">
                     ৳{product.discountPrice || product.price}
                   </span>
                   {product.discountPrice && (
-                    <span className="text-xl text-gray-400 line-through">
+                    <span className="text-xl font-bold text-gray-400 line-through">
                       ৳{product.price}
                     </span>
                   )}
                   {product.discountPrice && (
-                    <span className="text-sm font-bold text-red-600 uppercase tracking-wider">
+                    <span className="bg-red-50 text-red-600 px-3 py-1 rounded-full text-xs font-black uppercase tracking-widest">
                       Save{" "}
                       {Math.round(
                         ((product.price - product.discountPrice) /
@@ -186,9 +189,9 @@ const ProductDetailPage = () => {
               <div className="h-px bg-gray-100 w-full" />
 
               <section className="space-y-6">
-                <div className="flex items-center justify-between text-sm font-bold uppercase tracking-wider">
+                <div className="flex items-center justify-between text-xs font-black uppercase tracking-widest text-gray-950">
                   <span>Select Size</span>
-                  <button className="text-gray-400 hover:text-black flex items-center gap-2">
+                  <button className="text-gray-400 hover:text-black flex items-center gap-2 transition-colors cursor-pointer">
                     Size Guide{" "}
                     <HugeiconsIcon icon={InformationCircleIcon} size={16} />
                   </button>
@@ -199,10 +202,10 @@ const ProductDetailPage = () => {
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
-                      className={`h-14 flex items-center justify-center rounded-2xl font-bold transition-all border-2 ${
+                      className={`h-14 flex items-center justify-center rounded-2xl font-black text-sm transition-all border-2 cursor-pointer ${
                         selectedSize === size
-                          ? "bg-black text-white border-black"
-                          : "bg-white text-gray-900 border-gray-100 hover:border-gray-300"
+                          ? "bg-black text-white border-black shadow-xl shadow-black/20 scale-105"
+                          : "bg-white text-gray-700 border-gray-100 hover:border-black hover:text-black"
                       }`}
                     >
                       {size}
@@ -214,31 +217,35 @@ const ProductDetailPage = () => {
               <section className="space-y-8">
                 <button
                   disabled={!selectedSize}
-                  className="group relative w-full h-20 bg-black disabled:bg-gray-200 disabled:cursor-not-allowed text-white rounded-[24px] font-black uppercase tracking-widest text-lg overflow-hidden transition-all active:scale-95 flex items-center justify-center gap-4"
+                  className="group relative w-full h-20 bg-black disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-[24px] font-black uppercase tracking-widest text-lg overflow-hidden transition-all active:scale-[0.98] flex items-center justify-center gap-4 cursor-pointer shadow-2xl shadow-black/10"
                 >
                   <div className="absolute inset-0 bg-red-600 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                   <span className="relative z-10 flex items-center gap-3">
                     <HugeiconsIcon icon={ShoppingBag01Icon} size={24} />
-                    {selectedSize ? "Add to Cart" : "Select a Size"}
+                    {selectedSize ? "Secure Checkout" : "Select Your Size"}
                   </span>
                 </button>
 
                 <div className="space-y-4">
-                  <div className="flex items-center gap-3 text-sm font-medium text-gray-600">
-                    <HugeiconsIcon
-                      icon={DeliveryTruck01Icon}
-                      size={20}
-                      className="text-green-600"
-                    />
-                    <span>Free shipping on orders over ৳5000</span>
+                  <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-gray-700">
+                    <div className="p-1.5 bg-green-50 rounded-full">
+                      <HugeiconsIcon
+                        icon={DeliveryTruck01Icon}
+                        size={16}
+                        className="text-green-600"
+                      />
+                    </div>
+                    <span>Free global express shipping</span>
                   </div>
-                  <div className="flex items-center gap-3 text-sm font-medium text-gray-600">
-                    <HugeiconsIcon
-                      icon={CheckmarkCircle02Icon}
-                      size={20}
-                      className="text-green-600"
-                    />
-                    <span>In stock and ready to ship</span>
+                  <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-gray-700">
+                    <div className="p-1.5 bg-green-50 rounded-full">
+                      <HugeiconsIcon
+                        icon={CheckmarkCircle02Icon}
+                        size={16}
+                        className="text-green-600"
+                      />
+                    </div>
+                    <span>Limited batch - Ready to ship</span>
                   </div>
                 </div>
               </section>
@@ -266,8 +273,8 @@ const ProductDetailPage = () => {
       </main>
 
       {/* Recommended Section (Simple) */}
-      <section className="bg-gray-50 py-24 px-4 overflow-hidden">
-        <div className="max-w-7xl mx-auto">
+      <section className="bg-gray-50/50 py-32 px-4 md:px-10 lg:px-20 border-t border-gray-100 overflow-hidden">
+        <div className="max-w-8xl mx-auto">
           <div className="flex items-end justify-between mb-12">
             <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">
               You Might Also Like
