@@ -23,3 +23,69 @@ body {
   color: var(--foreground);
   font-family: var(--font-inter), sans-serif;
 }
+
+/* -------------------------------------------------------------------------- */
+/*                               SCROLLBAR STYLING                            */
+/* -------------------------------------------------------------------------- */
+
+/* Custom Scrollbar Styling (Webkit) - More Premium & Indigo themed */
+::-webkit-scrollbar {
+  width: 6px; /* Slimmer for modern look */
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(99, 102, 241, 0.2); /* Subtle indigo */
+  border-radius: 100px;
+  transition: all 0.4s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(99, 102, 241, 0.6); /* Brighter indigo on hover */
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
+}
+
+/* Firefox Scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(99, 102, 241, 0.2) var(--background);
+}
+
+/* Optimization for Smooth Scrolling with 3D elements */
+* {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.will-change-transform {
+  will-change: transform;
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               LENIS SMOOTH SCROLL                           */
+/* -------------------------------------------------------------------------- */
+
+html.lenis,
+html.lenis body {
+  height: auto;
+}
+
+.lenis.lenis-smooth {
+  scroll-behavior: auto !important;
+}
+
+.lenis.lenis-smooth [data-lenis-prevent] {
+  overscroll-behavior: contain;
+}
+
+.lenis.lenis-stopped {
+  overflow: hidden;
+}
+
+.lenis.lenis-scrolling iframe {
+  pointer-events: none;
+}
