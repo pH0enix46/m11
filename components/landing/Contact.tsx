@@ -40,19 +40,19 @@ const Contact = () => {
                 {
                   icon: MailIcon,
                   label: "EMAIL US",
-                  value: "hello@m11-footwear.com",
+                  value: "m11elevenbd@gmail.com",
                   delay: 0.2,
                 },
                 {
                   icon: ServiceIcon,
                   label: "SUPPORT",
-                  value: "+1 (555) 000-M11",
+                  value: "01972792106",
                   delay: 0.3,
                 },
                 {
                   icon: LocationIcon,
                   label: "VISIT US",
-                  value: "Stockholm, Sweden",
+                  value: "Dhaka, Bangladesh",
                   delay: 0.4,
                 },
               ].map((item, i) => (

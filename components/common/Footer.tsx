@@ -39,8 +39,8 @@ const Footer = () => {
                 />
               </div>
               <p className="text-black/60 text-sm font-medium leading-relaxed max-w-[200px]">
-                Redefining the modern silhouette with Scandinavian technical
-                precision.
+                MODERN AESTHETIC DESIGNED USING HIGH QUALITY MATERIALS. MADE BY
+                BEST SHOE MAKERS.
               </p>
             </motion.div>
           </div>
