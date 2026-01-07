@@ -5,9 +5,9 @@ import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 
 const images = [
-  "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=2012&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=2070&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1525966222134-fcfa99b8ae77?q=80&w=1996&auto=format&fit=crop",
+  "/Hero/m-landing-1.jpeg",
+  "/Hero/m-landing-2.jpeg",
+  "/Hero/m-landing-3.jpeg",
 ];
 
 const Hero = () => {
@@ -78,7 +78,7 @@ const Hero = () => {
               fill
               priority
               className="object-cover"
-              sizes="100vw"
+              sizes="50vw"
             />
           </motion.div>
           {/* Subtle gradient overlay for better text readability */}
