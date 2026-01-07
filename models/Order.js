@@ -7,6 +7,10 @@ const OrderItemSchema = new mongoose.Schema({
     required: true,
   },
   name: String,
+  selectedSize: {
+    type: String,
+    required: true,
+  },
   quantity: {
     type: Number,
     required: true,
@@ -32,11 +36,11 @@ const OrderSchema = new mongoose.Schema(
     },
     items: [OrderItemSchema],
     shippingAddress: {
-      street: { type: String, required: true },
+      firstName: { type: String, required: true },
+      lastName: { type: String, required: true },
+      email: { type: String, required: true },
+      address: { type: String, required: true },
       city: { type: String, required: true },
-      state: { type: String, required: true },
-      zipCode: { type: String, required: true },
-      country: { type: String, required: true },
       phone: { type: String, required: true },
     },
     paymentMethod: {
@@ -90,12 +94,16 @@ const OrderSchema = new mongoose.Schema(
 );
 
 // Generate order number before saving
-OrderSchema.pre("save", async function (next) {
+OrderSchema.pre("save", async function () {
   if (!this.orderNumber) {
     const count = await mongoose.model("Order").countDocuments();
     this.orderNumber = `ORD-${Date.now()}-${count + 1}`;
   }
-  next();
 });
+
+// In development, handle model refresh
+if (process.env.NODE_ENV === "development") {
+  delete mongoose.models.Order;
+}
 
 export default mongoose.models.Order || mongoose.model("Order", OrderSchema);

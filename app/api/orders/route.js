@@ -48,85 +48,126 @@ export async function GET(request) {
 // CREATE order
 export async function POST(request) {
   try {
-    const user = await requireAuth(request);
+    const user = await requireAuth();
     if (user instanceof Response) return user;
 
     await connectDB();
 
     const { shippingAddress, paymentMethod } = await request.json();
+    console.log("Received shippingAddress:", shippingAddress);
 
-    // Get user cart
+    if (!shippingAddress) {
+      return NextResponse.json(
+        { success: false, message: "Shipping address is required" },
+        { status: 400 }
+      );
+    }
+
+    // 1. Get user cart with populated products
     const cart = await Cart.findOne({ user: user._id }).populate(
       "items.product"
     );
 
     if (!cart || cart.items.length === 0) {
       return NextResponse.json(
-        { success: false, message: "Cart is empty" },
+        { success: false, message: "Your cart is empty" },
         { status: 400 }
       );
     }
 
-    // Validate stock
-    for (const item of cart.items) {
-      if (item.product.stock < item.quantity) {
-        return NextResponse.json(
-          {
-            success: false,
-            message: `Insufficient stock for ${item.product.name}`,
-          },
-          { status: 400 }
-        );
-      }
-    }
-
-    // Calculate prices
-    const itemsPrice = cart.totalPrice;
-    const shippingPrice = itemsPrice > 100 ? 0 : 10;
-    const taxPrice = itemsPrice * 0.1; // 10% tax
+    // 2. Calculate final pricing
+    const itemsPrice = cart.totalPrice || 0;
+    const shippingPrice = itemsPrice > 5000 ? 0 : 60; // Free shipping over 5000
+    const taxPrice = 0; // Tax included in price for now
     const totalPrice = itemsPrice + shippingPrice + taxPrice;
 
-    // Create order
-    const order = await Order.create({
-      user: user._id,
-      items: cart.items.map((item) => ({
-        product: item.product._id,
-        name: item.product.name,
-        quantity: item.quantity,
-        price: item.price,
-        image: item.product.images[0]?.url,
-      })),
-      shippingAddress,
-      paymentMethod,
-      itemsPrice,
-      shippingPrice,
-      taxPrice,
-      totalPrice,
-    });
+    // 3. Create the order record
+    console.log("Attempting to create order for user:", user._id);
 
-    // Update product stock
-    for (const item of cart.items) {
-      await Product.findByIdAndUpdate(item.product._id, {
-        $inc: { stock: -item.quantity },
-      });
+    // Explicitly validate shippingAddress parts
+    const missingFields = [];
+    if (!shippingAddress.firstName) missingFields.push("firstName");
+    if (!shippingAddress.lastName) missingFields.push("lastName");
+    if (!shippingAddress.email) missingFields.push("email");
+    if (!shippingAddress.phone) missingFields.push("phone");
+    if (!shippingAddress.address) missingFields.push("address");
+    if (!shippingAddress.city) missingFields.push("city");
+
+    if (missingFields.length > 0) {
+      console.log("Missing fields for order:", missingFields);
+      return NextResponse.json(
+        {
+          success: false,
+          message: `Missing required shipping fields: ${missingFields.join(
+            ", "
+          )}`,
+          missingFields,
+        },
+        { status: 400 }
+      );
     }
 
-    // Clear cart
+    let order;
+    try {
+      order = await Order.create({
+        user: user._id,
+        items: cart.items.map((item) => ({
+          product: item.product._id,
+          name: item.product.name,
+          quantity: item.quantity,
+          selectedSize: item.selectedSize,
+          price: item.price,
+          image: item.product.images[0] || "",
+        })),
+        shippingAddress: {
+          firstName: shippingAddress.firstName,
+          lastName: shippingAddress.lastName,
+          email: shippingAddress.email || user.email || "no-email@example.com",
+          address: shippingAddress.address,
+          city: shippingAddress.city,
+          phone: shippingAddress.phone,
+        },
+        paymentMethod: paymentMethod || "cash",
+        itemsPrice,
+        shippingPrice,
+        taxPrice,
+        totalPrice,
+        orderStatus: "pending",
+      });
+    } catch (dbError) {
+      console.error("Mongoose Order Creation Error:", dbError);
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Database validation failed. Please check your form data.",
+          error: dbError.message,
+        },
+        { status: 400 }
+      );
+    }
+
+    // 4. Clear the cart after successful order creation
+    console.log("Order created successfully:", order.orderNumber);
     cart.items = [];
+    cart.totalPrice = 0;
     await cart.save();
 
     return NextResponse.json(
       {
         success: true,
-        message: "Order created successfully",
+        message: "Order placed successfully",
+        orderNumber: order.orderNumber,
         data: order,
       },
       { status: 201 }
     );
   } catch (error) {
-    console.error("Create order error:", error);
+    console.error("Critical API Error:", error);
     return NextResponse.json(
-      { success: false, message: "Server error", error: error.message },
+      {
+        success: false,
+        message: "An unexpected error occurred. Please try again later.",
+      },
       { status: 500 }
     );
   }

@@ -12,6 +12,10 @@ const CartItemSchema = new mongoose.Schema({
     min: 1,
     default: 1,
   },
+  selectedSize: {
+    type: String,
+    required: true,
+  },
   price: {
     type: Number,
     required: true,
@@ -38,11 +42,15 @@ const CartSchema = new mongoose.Schema(
 );
 
 // Calculate total price before saving
-CartSchema.pre("save", function (next) {
+CartSchema.pre("save", function () {
   this.totalPrice = this.items.reduce((total, item) => {
     return total + item.price * item.quantity;
   }, 0);
-  next();
 });
+
+// In development, handle model refresh
+if (process.env.NODE_ENV === "development") {
+  delete mongoose.models.Cart;
+}
 
 export default mongoose.models.Cart || mongoose.model("Cart", CartSchema);

@@ -4,6 +4,8 @@ import "./globals.css";
 import Navbar from "@/components/common/Navbar";
 import Footer from "@/components/common/Footer";
 import SmoothScroll from "@/components/ui/SmoothScroll";
+import { CartProvider } from "@/context/CartContext";
+import { AuthProvider } from "@/context/AuthContext";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -27,12 +29,16 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={`${inter.variable} antialiased`}>
-        <div className="overflow-x-hidden">
-          <SmoothScroll />
-          <Navbar />
-          {children}
-          <Footer />
-        </div>
+        <AuthProvider>
+          <CartProvider>
+            <div className="overflow-x-hidden">
+              <SmoothScroll />
+              <Navbar />
+              {children}
+              <Footer />
+            </div>
+          </CartProvider>
+        </AuthProvider>
       </body>
     </html>
   );

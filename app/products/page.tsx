@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 import Link from "next/link";
@@ -11,42 +11,63 @@ import {
   Sorting05Icon,
   Cancel01Icon,
 } from "@hugeicons/core-free-icons";
-import { products } from "@/constants/products";
+import { Product } from "@/constants/products";
 
 const ProductsPage = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [sortBy, setSortBy] = useState<string>("default");
 
-  const categories = [
-    "All",
-    ...Array.from(new Set(products.map((p) => p.category))),
-  ];
+  useEffect(() => {
+    const fetchProducts = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams();
+        if (selectedCategory !== "All")
+          params.append("category", selectedCategory);
+        if (searchQuery) params.append("search", searchQuery);
 
-  const filteredProducts = useMemo(() => {
-    const result = products.filter((product) => {
-      const matchesSearch =
-        product.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        product.description.toLowerCase().includes(searchQuery.toLowerCase());
-      const matchesCategory =
-        selectedCategory === "All" || product.category === selectedCategory;
-      return matchesSearch && matchesCategory;
-    });
+        const response = await fetch(`/api/products?${params.toString()}`);
+        const result = await response.json();
 
-    if (sortBy === "price-low") {
-      result.sort(
-        (a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price)
-      );
-    } else if (sortBy === "price-high") {
-      result.sort(
-        (a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price)
-      );
-    } else if (sortBy === "name") {
-      result.sort((a, b) => a.name.localeCompare(b.name));
-    }
+        if (result.success) {
+          const sortedProducts = result.data;
 
-    return result;
+          // Client-side sorting as the API sort is simple
+          if (sortBy === "price-low") {
+            sortedProducts.sort(
+              (a: Product, b: Product) =>
+                (a.discountPrice || a.price) - (b.discountPrice || b.price)
+            );
+          } else if (sortBy === "price-high") {
+            sortedProducts.sort(
+              (a: Product, b: Product) =>
+                (b.discountPrice || b.price) - (a.discountPrice || a.price)
+            );
+          } else if (sortBy === "name") {
+            sortedProducts.sort((a: Product, b: Product) =>
+              a.name.localeCompare(b.name)
+            );
+          }
+
+          setProducts(sortedProducts);
+        }
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    const timer = setTimeout(fetchProducts, 300); // Debounce search
+    return () => clearTimeout(timer);
   }, [searchQuery, selectedCategory, sortBy]);
+
+  const categories = ["All", "Classic", "Premium", "Sport"];
+
+  const filteredProducts = products;
 
   return (
     <div className="min-h-screen bg-white">
@@ -118,7 +139,7 @@ const ProductsPage = () => {
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-[0.1em] transition-all duration-300 cursor-pointer ${
+                    className={`px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 cursor-pointer ${
                       selectedCategory === cat
                         ? "bg-black text-white shadow-lg shadow-black/10 scale-105"
                         : "text-gray-500 hover:text-black hover:bg-white"
@@ -174,7 +195,17 @@ const ProductsPage = () => {
 
       {/* Main Content */}
       <main className="max-w-8xl mx-auto px-4 py-16 md:px-10 lg:px-20">
-        {filteredProducts.length > 0 ? (
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="animate-pulse space-y-4">
+                <div className="aspect-4/5 bg-gray-100 rounded-3xl" />
+                <div className="h-4 bg-gray-100 rounded w-3/4" />
+                <div className="h-4 bg-gray-100 rounded w-1/2" />
+              </div>
+            ))}
+          </div>
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((product, index) => (

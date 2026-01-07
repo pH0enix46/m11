@@ -16,39 +16,25 @@ export async function GET(request) {
 
     // Filters
     const category = searchParams.get("category");
-    const minPrice = searchParams.get("minPrice");
-    const maxPrice = searchParams.get("maxPrice");
     const search = searchParams.get("search");
-    const featured = searchParams.get("featured");
     const sort = searchParams.get("sort") || "-createdAt";
 
     // Build query
     const query = { isActive: true };
 
-    if (category) {
+    if (category && category !== "All") {
       query.category = category;
-    }
-
-    if (minPrice || maxPrice) {
-      query.price = {};
-      if (minPrice) query.price.$gte = parseFloat(minPrice);
-      if (maxPrice) query.price.$lte = parseFloat(maxPrice);
     }
 
     if (search) {
       query.$text = { $search: search };
     }
 
-    if (featured === "true") {
-      query.featured = true;
-    }
-
     // Execute query
     const products = await Product.find(query)
       .sort(sort)
       .limit(limit)
-      .skip(skip)
-      .select("-__v");
+      .skip(skip);
 
     const total = await Product.countDocuments(query);
 
