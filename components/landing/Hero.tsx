@@ -94,7 +94,7 @@ const Hero = () => {
           transition={{ delay: 0.3, duration: 0.8, ease: "easeOut" }}
           className="text-5xl font-bold tracking-tight text-white md:text-7xl lg:text-8xl"
         >
-          End of Season Sale
+          New Arrivals
         </motion.h1>
 
         <motion.p
