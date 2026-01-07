@@ -7,34 +7,30 @@ import Image from "next/image";
 const collections = [
   {
     id: 1,
-    title: "Urban Boot",
+    title: "Shark Ocean Blue",
     description:
-      "The Urban Boot continues our pursuit of timeless design infused with technical precision.",
-    image:
-      "https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=1964&auto=format&fit=crop",
+      "Suede Leather Upper with Ultra-Soft Full Grain Leather Lining",
+    image: "/Hero/m-landing-4.jpeg",
   },
   {
     id: 2,
-    title: "Rain Boots",
+    title: "Ryder Polar White ",
     description:
-      "Our take on the iconic Chelsea Boot remixed with a sneaker sole.",
-    image:
-      "https://images.unsplash.com/photo-1491553895911-0055eca6402d?q=80&w=2080&auto=format&fit=crop",
+      "Premium Grain Leather Upper Ultra-Soft Full Grain Leather Lining",
+    image: "/Hero/m-landing-9.jpeg",
   },
   {
     id: 3,
-    title: "Alpine Hiker",
+    title: "Ryder Black",
     description:
-      "Designed and built for urban escapes or terrain demanding environments.",
-    image:
-      "https://images.unsplash.com/photo-1542291026-7eec264c27ff?q=80&w=2070&auto=format&fit=crop",
+      " Premium Export Full Grain Leather Upper with Ultra-Soft Full Grain Leather Lining",
+    image: "/Hero/m-landing-7.jpeg",
   },
   {
     id: 4,
-    title: "Arena Sneaker",
-    description: "A sneaker designed for the city and the elements alike.",
-    image:
-      "https://images.unsplash.com/photo-1549298916-b41d501d3772?q=80&w=2012&auto=format&fit=crop",
+    title: "Yoroi Polar White",
+    description: "Premium Export Full Grain Leather Upper",
+    image: "/Hero/m-landing-8.jpeg",
   },
 ];
 

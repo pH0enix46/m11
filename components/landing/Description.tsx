@@ -20,7 +20,7 @@ const Description = () => {
             >
               {/* Background Image: Landscape/Atmosphere */}
               <Image
-                src="https://images.unsplash.com/photo-1560769629-975ec94e6a86?q=80&w=1964&auto=format&fit=crop"
+                src="/Hero/m-landing-1.jpeg"
                 alt="Scandinavian Landscape"
                 fill
                 className="object-cover rounded-sm grayscale-[0.2]"
@@ -37,7 +37,7 @@ const Description = () => {
             >
               <div className="relative h-full w-full overflow-hidden">
                 <Image
-                  src="https://images.unsplash.com/photo-1491553895911-0055eca6402d?q=80&w=2080&auto=format&fit=crop"
+                  src="/Hero/m-landing-9.jpeg"
                   alt="Product Highlight"
                   fill
                   className="object-cover hover:scale-110 transition-transform duration-1000"
@@ -56,8 +56,9 @@ const Description = () => {
               className="space-y-4"
             >
               <h2 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-[1.1]">
-                Designed for the Elements. <br className="hidden md:block" />
-                Defined by Simplicity.
+                <span className="text-red-600">Designed</span> for the Elements.{" "}
+                <br className="hidden md:block" />
+                Defined by <span className="text-[#8B7355]">Simplicity</span>.
               </h2>
             </motion.div>
 
