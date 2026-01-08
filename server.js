@@ -1,5 +1,6 @@
-import express from "express";
-import next from "next";
+/* eslint-disable @typescript-eslint/no-require-imports */
+const express = require("express");
+const next = require("next");
 
 const port = process.env.PORT || 3000;
 const dev = process.env.NODE_ENV !== "production";
@@ -7,20 +8,24 @@ const dev = process.env.NODE_ENV !== "production";
 const app = next({ dev });
 const handle = app.getRequestHandler();
 
-await app.prepare();
+app.prepare().then(() => {
+  const server = express();
 
-const server = express();
+  // 🔥 REQUIRED FOR JSON APIs
+  server.use(express.json());
+  server.use(express.urlencoded({ extended: true }));
 
-// health check
-server.get("/health", (req, res) => {
-  res.status(200).json({ status: "ok" });
-});
+  // health check
+  server.get("/health", (req, res) => {
+    res.json({ status: "ok" });
+  });
 
-// handle all routes (Express v5 safe)
-server.use((req, res) => {
-  return handle(req, res);
-});
+  // Let Next.js handle everything else
+  server.use((req, res) => {
+    return handle(req, res);
+  });
 
-server.listen(port, "0.0.0.0", () => {
-  console.log(`🚀 Server ready on http://localhost:${port}`);
+  server.listen(port, "0.0.0.0", () => {
+    console.log(`🚀 Next.js running on port ${port}`);
+  });
 });
