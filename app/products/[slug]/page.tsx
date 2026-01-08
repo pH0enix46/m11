@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Image from "next/image";
 import Link from "next/link";
@@ -14,14 +14,66 @@ import {
   DeliveryTruck01Icon,
   InformationCircleIcon,
 } from "@hugeicons/core-free-icons";
-import { products } from "@/constants/products";
+import { Product } from "@/constants/products";
+import { useCart } from "@/context/CartContext";
 
 const ProductDetailPage = () => {
-  const { slug } = useParams();
+  const params = useParams();
+  const slug = params?.slug as string;
   const router = useRouter();
-  const product = products.find((p) => p.slug === slug);
+  const { addToCart } = useCart();
+
+  const [product, setProduct] = useState<Product | null>(null);
+  const [recommendations, setRecommendations] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const [activeImage, setActiveImage] = useState(0);
   const [selectedSize, setSelectedSize] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchProductData = async () => {
+      if (!slug) return;
+      setLoading(true);
+      try {
+        const productRes = await fetch(`/api/products/slug/${slug}`);
+        const productData = await productRes.json();
+
+        if (productData.success) {
+          setProduct(productData.data);
+
+          // Fetch recommendations (just all products for now)
+          const recRes = await fetch("/api/products?limit=5");
+          const recData = await recRes.json();
+          if (recData.success) {
+            setRecommendations(
+              recData.data.filter((p: Product) => p.slug !== slug)
+            );
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch product data:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProductData();
+  }, [slug]);
+
+  const handleAddToCart = () => {
+    if (product && selectedSize) {
+      addToCart(product, selectedSize);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white px-4">
+        <div className="animate-pulse flex flex-col items-center gap-4">
+          <div className="w-16 h-16 bg-gray-100 rounded-full" />
+          <div className="h-4 bg-gray-100 rounded w-48" />
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -37,7 +89,7 @@ const ProductDetailPage = () => {
           </p>
           <Link
             href="/products"
-            className="inline-flex items-center gap-2 bg-black text-white px-8 py-4 rounded-full font-bold uppercase tracking-widest text-sm hover:bg-red-600 transition-colors"
+            className="inline-flex items-center gap-2 bg-black text-white px-8 py-4 rounded-full font-bold uppercase tracking-widest text-sm hover:bg-red-600 transition-colors cursor-pointer"
           >
             <HugeiconsIcon icon={ArrowLeft01Icon} size={20} />
             Back to Collection
@@ -50,7 +102,7 @@ const ProductDetailPage = () => {
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <div className="sticky top-30 z-40 bg-white/90 backdrop-blur-2xl border-b border-gray-100/50 shadow-sm transition-all duration-300 mt-20">
+      <div className="sticky top-20 z-40 bg-white/90 backdrop-blur-2xl border-b border-gray-100/50 shadow-sm transition-all duration-300 mt-20">
         <div className="max-w-8xl mx-auto px-4 md:px-10 lg:px-20 h-24 flex items-center justify-between">
           <button
             onClick={() => router.back()}
@@ -109,7 +161,7 @@ const ProductDetailPage = () => {
 
               {/* Image Indicators */}
               <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-3">
-                {product.images.map((_, idx) => (
+                {product.images.map((_: string, idx: number) => (
                   <button
                     key={idx}
                     onClick={() => setActiveImage(idx)}
@@ -124,7 +176,7 @@ const ProductDetailPage = () => {
             </div>
 
             <div className="grid grid-cols-4 gap-4">
-              {product.images.map((img, idx) => (
+              {product.images.map((img: string, idx: number) => (
                 <button
                   key={idx}
                   onClick={() => setActiveImage(idx)}
@@ -198,7 +250,7 @@ const ProductDetailPage = () => {
                 </div>
 
                 <div className="grid grid-cols-4 sm:grid-cols-6 gap-3">
-                  {product.sizes.map((size) => (
+                  {product.sizes.map((size: string) => (
                     <button
                       key={size}
                       onClick={() => setSelectedSize(size)}
@@ -217,6 +269,7 @@ const ProductDetailPage = () => {
               <section className="space-y-8">
                 <button
                   disabled={!selectedSize}
+                  onClick={handleAddToCart}
                   className="group relative w-full h-20 bg-black disabled:bg-gray-100 disabled:text-gray-400 disabled:cursor-not-allowed text-white rounded-[24px] font-black uppercase tracking-widest text-lg overflow-hidden transition-all active:scale-[0.98] flex items-center justify-center gap-4 cursor-pointer shadow-2xl shadow-black/10"
                 >
                   <div className="absolute inset-0 bg-red-600 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
@@ -258,7 +311,7 @@ const ProductDetailPage = () => {
                     {product.description}
                   </p>
                   <ul className="space-y-3 p-0 list-none font-medium">
-                    {product.features.map((feature, idx) => (
+                    {product.features.map((feature: string, idx: number) => (
                       <li key={idx} className="flex items-start gap-3">
                         <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-red-600 shrink-0" />
                         {feature}
@@ -275,40 +328,51 @@ const ProductDetailPage = () => {
       {/* Recommended Section (Simple) */}
       <section className="bg-gray-50/50 py-32 px-4 md:px-10 lg:px-20 border-t border-gray-100 overflow-hidden">
         <div className="max-w-8xl mx-auto">
-          <div className="flex items-end justify-between mb-12">
-            <h2 className="text-3xl font-black text-gray-900 uppercase tracking-tighter">
-              You Might Also Like
-            </h2>
+          <div className="flex justify-between items-end mb-12">
+            <div>
+              <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2">
+                Complete the look
+              </p>
+              <h2 className="text-4xl font-black text-gray-900 uppercase tracking-tight italic">
+                You Might Also Like
+              </h2>
+            </div>
             <Link
               href="/products"
-              className="text-sm font-bold uppercase tracking-widest text-red-600 hover:text-black transition-colors flex items-center gap-2"
+              className="hidden md:flex items-center gap-2 group cursor-pointer"
             >
-              Browse More <HugeiconsIcon icon={ArrowRight01Icon} size={20} />
+              <span className="text-xs font-black uppercase tracking-widest text-gray-500 group-hover:text-black transition-colors">
+                View All
+              </span>
+              <div className="w-8 h-8 rounded-full border border-gray-200 flex items-center justify-center group-hover:border-black transition-all">
+                <HugeiconsIcon icon={ArrowRight01Icon} size={14} />
+              </div>
             </Link>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8">
-            {products
-              .filter((p) => p.slug !== slug)
-              .slice(0, 3)
-              .map((p) => (
-                <Link key={p.id} href={`/products/${p.slug}`} className="group">
-                  <div className="relative aspect-square rounded-[32px] overflow-hidden bg-white shadow-sm transition-all duration-500 group-hover:shadow-xl group-hover:-translate-y-2">
-                    <Image
-                      src={p.images[0]}
-                      alt={p.name}
-                      fill
-                      className="object-cover transition-transform duration-700 group-hover:scale-110"
-                    />
-                  </div>
-                  <div className="mt-6 flex justify-between items-center px-2">
-                    <h3 className="font-bold text-gray-900">{p.name}</h3>
-                    <span className="font-black text-sm text-gray-900">
-                      ৳{p.discountPrice || p.price}
-                    </span>
-                  </div>
-                </Link>
-              ))}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            {recommendations.map((p: Product) => (
+              <Link
+                key={p.slug}
+                href={`/products/${p.slug}`}
+                className="group space-y-4 cursor-pointer"
+              >
+                <div className="aspect-4/5 relative bg-gray-50 rounded-3xl overflow-hidden">
+                  <Image
+                    src={p.images[0]}
+                    alt={p.name}
+                    fill
+                    className="object-cover transition-transform duration-700 group-hover:scale-110"
+                  />
+                </div>
+                <div>
+                  <h3 className="text-sm font-bold text-gray-900">{p.name}</h3>
+                  <p className="text-sm font-black text-black">
+                    ৳{p.discountPrice || p.price}
+                  </p>
+                </div>
+              </Link>
+            ))}
           </div>
         </div>
       </section>

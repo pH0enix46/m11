@@ -13,9 +13,11 @@ import {
 } from "@hugeicons/core-free-icons";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 const AuthPage = () => {
   const router = useRouter();
+  const { login: authLogin } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -52,6 +54,7 @@ const AuthPage = () => {
       const data = await res.json();
 
       if (data.success) {
+        authLogin(data.user);
         router.push("/");
         router.refresh();
       } else {

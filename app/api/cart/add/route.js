@@ -6,27 +6,51 @@ import { requireAuth } from "@/lib/auth";
 
 export async function POST(request) {
   try {
-    const user = await requireAuth(request);
-    if (user instanceof Response) return user;
+    const user = await requireAuth();
 
-    await connectDB();
-
-    const { productId, quantity = 1 } = await request.json();
-
-    // Validate product
-    const product = await Product.findById(productId);
-    if (!product) {
+    // If user is not authenticated, return a friendly message
+    if (user instanceof Response) {
       return NextResponse.json(
-        { success: false, message: "Product not found" },
-        { status: 404 }
+        {
+          success: false,
+          message: "Please login to add items to cart",
+          requiresAuth: true,
+        },
+        { status: 401 }
       );
     }
 
-    // Check stock
-    if (product.stock < quantity) {
+    await connectDB();
+
+    const { productId, quantity = 1, selectedSize } = await request.json();
+    console.log(
+      `Add request: Product ${productId}, Size ${selectedSize}, User ${user._id}`
+    );
+
+    if (!selectedSize) {
       return NextResponse.json(
-        { success: false, message: "Insufficient stock" },
+        { success: false, message: "Please select a size" },
         { status: 400 }
+      );
+    }
+
+    // CRITICAL: Validate if productId is a valid MongoDB ObjectId
+    const mongoose = (await import("mongoose")).default;
+    if (!mongoose.Types.ObjectId.isValid(productId)) {
+      console.error("INVALID PRODUCT ID RECEIVED:", productId);
+      return NextResponse.json(
+        { success: false, message: "Invalid Product ID format" },
+        { status: 400 }
+      );
+    }
+
+    // Validate product exists in DB
+    const product = await Product.findById(productId);
+    if (!product) {
+      console.error("PRODUCT NOT FOUND IN DB:", productId);
+      return NextResponse.json(
+        { success: false, message: "Product not found in database" },
+        { status: 404 }
       );
     }
 
@@ -34,27 +58,37 @@ export async function POST(request) {
     let cart = await Cart.findOne({ user: user._id });
 
     if (!cart) {
-      cart = new Cart({ user: user._id, items: [] });
+      console.log("No cart found, creating one for user:", user._id);
+      cart = await Cart.create({ user: user._id, items: [] });
     }
 
-    // Check if product already in cart
+    // Check if product with same size already in cart
     const existingItemIndex = cart.items.findIndex(
-      (item) => item.product.toString() === productId
+      (item) =>
+        item.product.toString() === productId &&
+        item.selectedSize === selectedSize
     );
 
     if (existingItemIndex > -1) {
-      // Update quantity
-      cart.items[existingItemIndex].quantity += quantity;
+      cart.items[existingItemIndex].quantity += Number(quantity);
     } else {
-      // Add new item
       cart.items.push({
         product: productId,
-        quantity,
-        price: product.price,
+        quantity: Number(quantity),
+        selectedSize,
+        price: product.discountPrice || product.price,
       });
     }
 
-    await cart.save();
+    try {
+      await cart.save();
+      console.log("SUCCESS: Cart persisted to database for user:", user._id);
+    } catch (saveError) {
+      console.error("DATABASE SAVE FAILURE:", saveError);
+      throw saveError;
+    }
+
+    // Explicitly populate to return full product data to frontend
     await cart.populate("items.product");
 
     return NextResponse.json({
@@ -63,7 +97,7 @@ export async function POST(request) {
       data: cart,
     });
   } catch (error) {
-    console.error("Add to cart error:", error);
+    console.error("FATAL ADD TO CART ERROR:", error);
     return NextResponse.json(
       { success: false, message: "Server error", error: error.message },
       { status: 500 }
