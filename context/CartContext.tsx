@@ -39,8 +39,42 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   // Initialize cart from localStorage OR Database
   useEffect(() => {
     const initCart = async () => {
+      const savedCart = localStorage.getItem("cart");
+      let localItems = [];
+      if (savedCart) {
+        try {
+          localItems = JSON.parse(savedCart);
+        } catch (e) {
+          console.error("Failed to parse cart from localStorage", e);
+        }
+      }
+
       if (user) {
-        // Fetch from DB if user is logged in
+        // If there's a local cart, sync it with the DB first
+        if (localItems.length > 0) {
+          try {
+            const syncRes = await fetch("/api/cart", {
+              method: "PATCH",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                items: localItems.map((item: CartItem) => ({
+                  product: item._id || item.id,
+                  quantity: item.quantity,
+                  selectedSize: item.selectedSize,
+                  price: item.discountPrice || item.price,
+                })),
+              }),
+            });
+
+            if (syncRes.ok) {
+              localStorage.removeItem("cart"); // Clear local cart after sync
+            }
+          } catch (error) {
+            console.error("Cart sync failed", error);
+          }
+        }
+
+        // Fetch final cart from DB
         try {
           const response = await fetch("/api/cart");
           if (!response.ok) {
@@ -68,15 +102,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
           console.error("Failed to fetch cart from DB", error);
         }
       } else {
-        // Fetch from localStorage if guest
-        const savedCart = localStorage.getItem("cart");
-        if (savedCart) {
-          try {
-            setCartItems(JSON.parse(savedCart));
-          } catch (e) {
-            console.error("Failed to parse cart from localStorage", e);
-          }
-        }
+        // Guest user: use local items
+        setCartItems(localItems);
       }
       setIsInitialized(true);
     };
@@ -84,12 +111,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     initCart();
   }, [user]);
 
-  // Save cart to localStorage (only for guests or as a backup)
+  // Save cart to localStorage (Only for guests)
   useEffect(() => {
-    if (isInitialized) {
+    if (isInitialized && !user) {
       localStorage.setItem("cart", JSON.stringify(cartItems));
     }
-  }, [cartItems, isInitialized]);
+  }, [cartItems, isInitialized, user]);
 
   const syncCart = async () => {
     if (!user) return;
@@ -152,10 +179,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     // Sync with DB if logged in
     if (user) {
       try {
-        const response = await fetch("/api/cart/add", {
+        const response = await fetch("/api/cart", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId, selectedSize, quantity: 1 }),
+          body: JSON.stringify({
+            product: productId,
+            selectedSize,
+            quantity: 1,
+            price: product.discountPrice || product.price,
+          }),
         });
 
         const data = await response.json();
@@ -209,7 +241,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     // Sync with DB if logged in
     if (user) {
       try {
-        await fetch("/api/cart/remove", {
+        await fetch("/api/cart", {
           method: "DELETE",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ productId, selectedSize }),
@@ -240,7 +272,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     // Sync with DB if logged in
     if (user) {
       try {
-        await fetch("/api/cart/update", {
+        await fetch("/api/cart", {
           method: "PUT",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ productId, selectedSize, quantity }),
@@ -253,7 +285,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const clearCart = () => {
     setCartItems([]);
-    // Note: We might want a clear cart API too, but usually it's handled by individual removals or order placement
+    if (!user) {
+      localStorage.removeItem("cart");
+    }
   };
 
   const totalPrice = cartItems.reduce(

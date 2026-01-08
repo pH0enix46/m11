@@ -1,31 +1,40 @@
 import { NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
-import Order from "@/models/Order";
-import { requireAuth } from "@/lib/auth";
+import { cookies } from "next/headers";
+
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
 
 // GET single order
 export async function GET(request, { params }) {
   try {
-    const user = await requireAuth(request);
-    if (user instanceof Response) return user;
+    const cookieStore = await cookies();
+    const token = cookieStore.get("token")?.value;
 
-    await connectDB();
-
-    const order = await Order.findOne({
-      _id: params.id,
-      user: user._id,
-    }).populate("items.product", "name images");
-
-    if (!order) {
+    if (!token) {
       return NextResponse.json(
-        { success: false, message: "Order not found" },
-        { status: 404 }
+        { success: false, message: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    const { id } = await params;
+
+    const response = await fetch(`${BACKEND_URL}/api/orders/${id}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, message: data.message || "Order not found" },
+        { status: response.status }
       );
     }
 
     return NextResponse.json({
       success: true,
-      data: order,
+      data: data,
     });
   } catch (error) {
     console.error("Get order error:", error);

@@ -60,7 +60,7 @@ const AuthPage = () => {
       } else {
         setError(data.message || "Invalid credentials");
       }
-    } catch (err) {
+    } catch {
       setError("Connection error. Please try again.");
     } finally {
       setLoading(false);
