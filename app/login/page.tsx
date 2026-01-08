@@ -58,6 +58,7 @@ const AuthPage = () => {
         setError(data.message || "Invalid credentials");
       }
     } catch (err) {
+      console.log("Auth try Error:", err);
       setError("Connection error. Please try again.");
     } finally {
       setLoading(false);
