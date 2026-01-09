@@ -1,57 +1,24 @@
+#!/usr/bin/env node
 /* eslint-disable @typescript-eslint/no-require-imports */
-const express = require("express");
-const cors = require("cors");
 
-const app = express();
+const next = require("next");
 
-// Passenger / Webuzo provides PORT automatically
-const PORT = process.env.PORT || 3000;
+const dev = process.env.NODE_ENV !== "production";
+const app = next({ dev });
+const handle = app.getRequestHandler();
 
-/**
- * MIDDLEWARES
- */
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const PORT = process.env.PORT || 5000;
 
-// ✅ Allow ALL origins (for development / public API)
-app.use(
-  cors({
-    origin: "*",
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-  })
-);
+app.prepare().then(() => {
+  // Use Node's built-in HTTP server
+  const http = require("http");
 
-// Handle preflight requests
-app.options("*", cors());
-
-/**
- * ROUTES
- */
-app.get("/health", (req, res) => {
-  res.json({ status: "ok" });
-});
-
-app.post("/api/auth/login", (req, res) => {
-  res.json({
-    success: true,
-    message: "Login endpoint working",
+  const server = http.createServer((req, res) => {
+    handle(req, res);
   });
-});
 
-/**
- * 404 HANDLER
- */
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: "Route not found",
+  server.listen(PORT, (err) => {
+    if (err) throw err;
+    console.log(`> Next.js app ready on port ${PORT}`);
   });
-});
-
-/**
- * START SERVER
- */
-app.listen(PORT, "0.0.0.0", () => {
-  console.log(`🚀 API running on port ${PORT}`);
 });
