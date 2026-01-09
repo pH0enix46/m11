@@ -9,7 +9,8 @@ import {
   ShoppingBag01Icon,
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
-import { products, Product } from "@/constants/products";
+import { Product } from "@/constants/products";
+import { useState, useEffect } from "react";
 
 const ProductCard = ({
   product,
@@ -107,6 +108,28 @@ const ProductCard = ({
 };
 
 const TopProducts = () => {
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch("/api/products");
+        const result = await response.json();
+        if (result.success) {
+          // Show only top 4 products for the landing page section
+          setProducts(result.data.slice(0, 4));
+        }
+      } catch (error) {
+        console.error("Failed to fetch top products:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
   return (
     <section className="py-24 px-4 md:px-10 lg:px-20">
       <div className="mx-auto max-w-8xl">
@@ -152,9 +175,28 @@ const TopProducts = () => {
 
         {/* Product Grid */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
-          {products.map((product, index) => (
-            <ProductCard key={product.id} product={product} index={index} />
-          ))}
+          {loading ? (
+            // Skeleton loader
+            [...Array(4)].map((_, i) => (
+              <div key={i} className="animate-pulse space-y-4">
+                <div className="aspect-4/5 bg-gray-100 rounded-2xl" />
+                <div className="h-4 bg-gray-200 rounded w-3/4" />
+                <div className="h-4 bg-gray-100 rounded w-1/2" />
+              </div>
+            ))
+          ) : products.length > 0 ? (
+            products.map((product, index) => (
+              <ProductCard
+                key={product._id || product.id}
+                product={product}
+                index={index}
+              />
+            ))
+          ) : (
+            <div className="col-span-full text-center py-20 text-gray-500">
+              No products found.
+            </div>
+          )}
         </div>
 
         {/* Footer Action */}
@@ -177,5 +219,4 @@ const TopProducts = () => {
     </section>
   );
 };
-
 export default TopProducts;

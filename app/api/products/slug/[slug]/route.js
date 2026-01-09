@@ -1,24 +1,25 @@
 import { NextResponse } from "next/server";
-import connectDB from "@/lib/mongodb";
-import Product from "@/models/Product";
+
+const BACKEND_URL =
+  process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5001";
 
 export async function GET(request, { params }) {
   try {
-    await connectDB();
     const { slug } = await params;
 
-    const product = await Product.findOne({ slug, isActive: true });
+    const response = await fetch(`${BACKEND_URL}/api/products/slug/${slug}`);
+    const data = await response.json();
 
-    if (!product) {
+    if (!response.ok) {
       return NextResponse.json(
-        { success: false, message: "Product not found" },
-        { status: 404 }
+        { success: false, message: data.message || "Product not found" },
+        { status: response.status }
       );
     }
 
     return NextResponse.json({
       success: true,
-      data: product,
+      data: data,
     });
   } catch (error) {
     console.error("Get product by slug error:", error);
