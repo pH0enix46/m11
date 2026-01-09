@@ -3,6 +3,13 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { Product } from "@/constants/products";
 import { useAuth } from "./AuthContext";
+import {
+  getCartAction,
+  addToCartAction,
+  removeFromCartAction,
+  updateCartQuantityAction,
+  syncCartAction,
+} from "@/lib/actions";
 
 export interface CartItem extends Product {
   quantity: number;
@@ -53,20 +60,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
         // If there's a local cart, sync it with the DB first
         if (localItems.length > 0) {
           try {
-            const syncRes = await fetch("/api/cart", {
-              method: "PATCH",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                items: localItems.map((item: CartItem) => ({
-                  product: item._id || item.id,
-                  quantity: item.quantity,
-                  selectedSize: item.selectedSize,
-                  price: item.discountPrice || item.price,
-                })),
-              }),
+            const data = await syncCartAction({
+              items: localItems.map((item: CartItem) => ({
+                product: item._id || item.id,
+                quantity: item.quantity,
+                selectedSize: item.selectedSize,
+                price: item.discountPrice || item.price,
+              })),
             });
 
-            if (syncRes.ok) {
+            if (data.success) {
               localStorage.removeItem("cart"); // Clear local cart after sync
             }
           } catch (error) {
@@ -76,12 +79,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
 
         // Fetch final cart from DB
         try {
-          const response = await fetch("/api/cart");
-          if (!response.ok) {
-            console.error(`Cart API returned ${response.status}`);
-            return;
-          }
-          const data = await response.json();
+          const data = await getCartAction();
           if (data.success && data.data && data.data.items) {
             const dbItems = data.data.items.map(
               (item: {
@@ -121,8 +119,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
   const syncCart = async () => {
     if (!user) return;
     try {
-      const response = await fetch("/api/cart");
-      const data = await response.json();
+      const data = await getCartAction();
       if (data.success) {
         const dbItems = data.data.items.map(
           (item: {
@@ -179,20 +176,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     // Sync with DB if logged in
     if (user) {
       try {
-        const response = await fetch("/api/cart", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            product: productId,
-            selectedSize,
-            quantity: 1,
-            price: product.discountPrice || product.price,
-          }),
+        const data = await addToCartAction({
+          product: productId,
+          selectedSize,
+          quantity: 1,
+          price: product.discountPrice || product.price,
         });
 
-        const data = await response.json();
-
-        if (!response.ok) {
+        if (!data.success) {
           if (data.requiresAuth) {
             alert("Please login to add items to your cart");
             window.location.href = "/login";
@@ -241,11 +232,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     // Sync with DB if logged in
     if (user) {
       try {
-        await fetch("/api/cart", {
-          method: "DELETE",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId, selectedSize }),
-        });
+        await removeFromCartAction({ productId, selectedSize });
       } catch (error) {
         console.error("Failed to remove from cart in DB", error);
       }
@@ -272,11 +259,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
     // Sync with DB if logged in
     if (user) {
       try {
-        await fetch("/api/cart", {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ productId, selectedSize, quantity }),
-        });
+        await updateCartQuantityAction({ productId, selectedSize, quantity });
       } catch (error) {
         console.error("Failed to update cart in DB", error);
       }

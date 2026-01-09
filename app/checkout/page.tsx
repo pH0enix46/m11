@@ -14,6 +14,7 @@ import {
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { placeOrderAction } from "@/lib/actions";
 
 const CheckoutPage = () => {
   const { cartItems, totalPrice, clearCart } = useCart();
@@ -42,16 +43,10 @@ const CheckoutPage = () => {
     setError("");
 
     try {
-      const res = await fetch("/api/orders", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          shippingAddress: formData,
-          paymentMethod: "cash",
-        }),
+      const data = await placeOrderAction({
+        shippingAddress: formData,
+        paymentMethod: "cash",
       });
-
-      const data = await res.json();
 
       if (data.success) {
         setIsOrdered(true);
@@ -62,7 +57,7 @@ const CheckoutPage = () => {
       } else {
         setError(data.message || "Something went wrong. Please try again.");
       }
-    } catch (err) {
+    } catch {
       setError("Connection error. Please check your internet.");
     } finally {
       setLoading(false);
@@ -109,7 +104,7 @@ const CheckoutPage = () => {
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="fixed inset-0 z-[200] bg-white flex flex-col items-center justify-center text-center p-6"
+            className="fixed inset-0 z-200 bg-white flex flex-col items-center justify-center text-center p-6"
           >
             <motion.div
               initial={{ scale: 0.8, opacity: 0 }}

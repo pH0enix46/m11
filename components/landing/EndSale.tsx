@@ -11,6 +11,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Product } from "@/constants/products";
 import { useState, useEffect } from "react";
+import { getProductsAction } from "@/lib/actions";
 
 const ProductCard = ({
   product,
@@ -114,9 +115,8 @@ const TopProducts = () => {
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch("/api/products");
-        const result = await response.json();
-        if (result.success) {
+        const result = await getProductsAction({ limit: 4 });
+        if (result.success && Array.isArray(result.data)) {
           // Show only top 4 products for the landing page section
           setProducts(result.data.slice(0, 4));
         }

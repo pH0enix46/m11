@@ -16,6 +16,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import { Product } from "@/constants/products";
 import { useCart } from "@/context/CartContext";
+import { getProductBySlugAction, getProductsAction } from "@/lib/actions";
 
 const ProductDetailPage = () => {
   const params = useParams();
@@ -34,18 +35,16 @@ const ProductDetailPage = () => {
       if (!slug) return;
       setLoading(true);
       try {
-        const productRes = await fetch(`/api/products/slug/${slug}`);
-        const productData = await productRes.json();
+        const productResult = await getProductBySlugAction(slug);
 
-        if (productData.success) {
-          setProduct(productData.data);
+        if (productResult.success && productResult.data) {
+          setProduct(productResult.data);
 
           // Fetch recommendations (just all products for now)
-          const recRes = await fetch("/api/products?limit=5");
-          const recData = await recRes.json();
-          if (recData.success) {
+          const recResult = await getProductsAction({ limit: 5 });
+          if (recResult.success && Array.isArray(recResult.data)) {
             setRecommendations(
-              recData.data.filter((p: Product) => p.slug !== slug)
+              recResult.data.filter((p: Product) => p.slug !== slug)
             );
           }
         }
@@ -353,7 +352,7 @@ const ProductDetailPage = () => {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             {recommendations.map((p: Product) => (
               <Link
-                key={p.slug}
+                key={p._id || p.id || p.slug}
                 href={`/products/${p.slug}`}
                 className="group space-y-4 cursor-pointer"
               >

@@ -1,6 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useState, useEffect } from "react";
+import { getCurrentUserAction, logoutAction } from "@/lib/actions";
 
 interface User {
   id: string;
@@ -28,14 +29,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const checkAuth = async () => {
     try {
-      const response = await fetch("/api/auth/me");
-      const data = await response.json();
-      if (data.success) {
-        setUser(data.user);
+      const data = await getCurrentUserAction();
+      if (data.success && data.user) {
+        setUser(data.user as User);
       } else {
         setUser(null);
       }
-    } catch (error) {
+    } catch {
       setUser(null);
     } finally {
       setLoading(false);
@@ -52,7 +52,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
 
   const logout = async () => {
     try {
-      await fetch("/api/auth/logout", { method: "POST" });
+      await logoutAction();
       setUser(null);
       window.location.href = "/";
     } catch (error) {
