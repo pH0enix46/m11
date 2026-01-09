@@ -12,6 +12,7 @@ import {
   Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 import { Product } from "@/constants/products";
+import { getProductsAction } from "@/lib/actions";
 
 const ProductsPage = () => {
   const [products, setProducts] = useState<Product[]>([]);
@@ -24,15 +25,12 @@ const ProductsPage = () => {
     const fetchProducts = async () => {
       setLoading(true);
       try {
-        const params = new URLSearchParams();
-        if (selectedCategory !== "All")
-          params.append("category", selectedCategory);
-        if (searchQuery) params.append("search", searchQuery);
+        const result = await getProductsAction({
+          category: selectedCategory,
+          search: searchQuery,
+        });
 
-        const response = await fetch(`/api/products?${params.toString()}`);
-        const result = await response.json();
-
-        if (result.success) {
+        if (result.success && Array.isArray(result.data)) {
           const sortedProducts = result.data;
 
           // Client-side sorting as the API sort is simple
@@ -210,7 +208,7 @@ const ProductsPage = () => {
             <AnimatePresence mode="popLayout">
               {filteredProducts.map((product, index) => (
                 <motion.div
-                  key={product.id}
+                  key={product._id || product.id}
                   layout
                   initial={{ opacity: 0, scale: 0.9 }}
                   animate={{ opacity: 1, scale: 1 }}

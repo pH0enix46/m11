@@ -12,11 +12,18 @@ import {
   ArrowRight01Icon,
 } from "@hugeicons/core-free-icons";
 import Image from "next/image";
-import { useRouter } from "next/navigation";
 import { useAuth } from "@/context/AuthContext";
+import { loginAction, registerAction } from "@/lib/actions";
+
+interface User {
+  id: string;
+  name: string;
+  email?: string;
+  phone: string;
+  role: string;
+}
 
 const AuthPage = () => {
-  const router = useRouter();
   const { login: authLogin } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
@@ -39,24 +46,18 @@ const AuthPage = () => {
     setLoading(true);
     setError("");
 
-    const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
     const payload = isLogin
       ? { phone: formData.phone, password: formData.password }
       : formData;
 
     try {
-      const res = await fetch(endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await res.json();
+      const data = isLogin
+        ? await loginAction(payload)
+        : await registerAction(payload);
 
       if (data.success) {
-        authLogin(data.user);
-        router.push("/");
-        router.refresh();
+        authLogin(data.user as User);
+        window.location.href = "/";
       } else {
         setError(data.message || "Invalid credentials");
       }
@@ -92,7 +93,7 @@ const AuthPage = () => {
           </h2>
         </div>
 
-        <div className="bg-white p-8 md:p-10 rounded-[40px] shadow-xl shadow-black/[0.02] border border-black/5">
+        <div className="bg-white p-8 md:p-10 rounded-[40px] shadow-xl shadow-black/2 border border-black/5">
           <form onSubmit={handleSubmit} className="space-y-4">
             <AnimatePresence mode="wait">
               {!isLogin && (
