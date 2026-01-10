@@ -30,6 +30,7 @@ export default function ProductForm({
   const router = useRouter();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
+  const [previews, setPreviews] = useState<string[]>(initialData?.images || []);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<Partial<IProduct>>(
     initialData || {
@@ -95,10 +96,15 @@ export default function ProductForm({
     const newImages = [...(formData.images || [])];
     newImages.splice(index, 1);
     setFormData({ ...formData, images: newImages });
+
+    const newPreviews = [...previews];
+    newPreviews.splice(index, 1);
+    setPreviews(newPreviews);
   };
 
   const addImageField = () => {
     setFormData({ ...formData, images: [...(formData.images || []), ""] });
+    setPreviews([...previews, ""]);
   };
 
   const triggerFileSelect = (index: number) => {
@@ -109,9 +115,32 @@ export default function ProductForm({
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && activeImageIndex !== null) {
-      // By default image goes to products folder
-      const path = `/products/${file.name}`;
+      // Get extension
+      const extension = file.name.split(".").pop();
+
+      // Create slug from product name or fallback to 'product'
+      const nameSlug = formData.name
+        ? formData.name
+            .toLowerCase()
+            .replace(/[^a-z0-9]+/g, "-")
+            .replace(/(^-|-$)/g, "")
+        : "product";
+
+      // Generate random 10-character string
+      const randomHash = Math.random().toString(36).substring(2, 12);
+
+      // Construct path: /products/slug/random.extension
+      const path = `/products/${nameSlug}/${randomHash}.${extension}`;
+
+      // Update form data (actual path for DB)
       handleImageChange(activeImageIndex, path);
+
+      // Create temporary blob URL for instant preview
+      const objectUrl = URL.createObjectURL(file);
+      const newPreviews = [...previews];
+      newPreviews[activeImageIndex] = objectUrl;
+      setPreviews(newPreviews);
+
       // Reset input
       e.target.value = "";
     }
@@ -262,11 +291,12 @@ export default function ProductForm({
                       onClick={() => triggerFileSelect(index)}
                       className="w-16 h-16 rounded-lg bg-neutral-100 dark:bg-neutral-800 shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-700 relative hover:ring-2 hover:ring-red-500/20 transition-all cursor-pointer group/img"
                     >
-                      {url ? (
+                      {previews[index] || url ? (
                         <Image
-                          src={url}
+                          src={previews[index] || url}
                           alt="Preview"
                           fill
+                          unoptimized={!!previews[index]}
                           className="object-cover group-hover/img:scale-110 transition-transform"
                           sizes="64px"
                         />
@@ -280,11 +310,9 @@ export default function ProductForm({
                       <input
                         type="text"
                         value={url}
-                        onChange={(e) =>
-                          handleImageChange(index, e.target.value)
-                        }
-                        className="flex-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
-                        placeholder="/products/category/image.jpg or https://..."
+                        readOnly
+                        className="flex-1 bg-neutral-50/50 dark:bg-neutral-800/50 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 outline-none text-neutral-500 cursor-not-allowed italic text-sm"
+                        placeholder="Automatic path generation..."
                       />
                       {formData.images && formData.images.length > 1 && (
                         <button

@@ -15,6 +15,8 @@ import { getAllProductsAction, deleteProductAction } from "@/lib/actions";
 import { IProduct } from "@/lib/types";
 import { useEffect } from "react";
 import { toast } from "react-hot-toast";
+import { motion, AnimatePresence } from "motion/react";
+import { AlertCircleIcon } from "@hugeicons/core-free-icons";
 
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -22,6 +24,15 @@ export default function ProductsPage() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [loading, setLoading] = useState(true);
+  const [deleteModal, setDeleteModal] = useState<{
+    show: boolean;
+    productId: string | null;
+    productName: string | null;
+  }>({
+    show: false,
+    productId: null,
+    productName: null,
+  });
 
   const fetchProducts = async () => {
     try {
@@ -43,23 +54,25 @@ export default function ProductsPage() {
     fetchProducts();
   }, []);
 
-  const handleDelete = async (id: string) => {
-    if (window.confirm("Are you sure you want to delete this product?")) {
-      const loadingToast = toast.loading("Deleting product...");
-      try {
-        const res = await deleteProductAction(id);
-        if (res.success) {
-          setProducts(products.filter((p) => p._id !== id));
-          toast.success("Product deleted successfully", { id: loadingToast });
-        } else {
-          toast.error(res.message || "Failed to delete product", {
-            id: loadingToast,
-          });
-        }
-      } catch (error) {
-        console.error("Delete error:", error);
-        toast.error("An error occurred", { id: loadingToast });
+  const handleDelete = async () => {
+    if (!deleteModal.productId) return;
+
+    const loadingToast = toast.loading("Deleting product...");
+    try {
+      const res = await deleteProductAction(deleteModal.productId);
+      if (res.success) {
+        setProducts(products.filter((p) => p._id !== deleteModal.productId));
+        toast.success("Product deleted successfully", { id: loadingToast });
+      } else {
+        toast.error(res.message || "Failed to delete product", {
+          id: loadingToast,
+        });
       }
+    } catch (error) {
+      console.error("Delete error:", error);
+      toast.error("An error occurred", { id: loadingToast });
+    } finally {
+      setDeleteModal({ show: false, productId: null, productName: null });
     }
   };
 
@@ -257,7 +270,13 @@ export default function ProductsPage() {
                           </Link>
                           <button
                             className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors cursor-pointer"
-                            onClick={() => handleDelete(product._id)}
+                            onClick={() =>
+                              setDeleteModal({
+                                show: true,
+                                productId: product._id,
+                                productName: product.name,
+                              })
+                            }
                           >
                             <HugeiconsIcon icon={Delete02Icon} size={20} />
                           </button>
@@ -275,6 +294,71 @@ export default function ProductsPage() {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteModal.show && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6">
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() =>
+                setDeleteModal({
+                  show: false,
+                  productId: null,
+                  productName: null,
+                })
+              }
+              className="absolute inset-0 bg-neutral-900/60 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative w-full max-w-md bg-white dark:bg-neutral-900 rounded-3xl shadow-2xl border border-neutral-100 dark:border-neutral-800 p-6 overflow-hidden"
+            >
+              <div className="flex flex-col items-center text-center space-y-4">
+                <div className="w-16 h-16 rounded-full bg-red-50 dark:bg-red-900/20 flex items-center justify-center text-red-600">
+                  <HugeiconsIcon icon={AlertCircleIcon} size={32} />
+                </div>
+                <div>
+                  <h3 className="text-xl font-bold text-neutral-900 dark:text-white">
+                    Delete Product?
+                  </h3>
+                  <p className="text-neutral-500 mt-2">
+                    Are you sure you want to delete{" "}
+                    <span className="font-bold text-neutral-900 dark:text-white">
+                      &quot;{deleteModal.productName}&quot;
+                    </span>
+                    ? This action cannot be undone.
+                  </p>
+                </div>
+                <div className="flex gap-3 w-full pt-4">
+                  <button
+                    onClick={() =>
+                      setDeleteModal({
+                        show: false,
+                        productId: null,
+                        productName: null,
+                      })
+                    }
+                    className="flex-1 px-6 py-3 rounded-full bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 font-bold hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleDelete}
+                    className="flex-1 px-6 py-3 rounded-full bg-red-600 text-white font-bold hover:bg-red-700 transition-colors cursor-pointer"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
