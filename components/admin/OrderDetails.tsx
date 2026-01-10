@@ -105,7 +105,7 @@ export default function OrderDetails({ order }: { order: IOrder }) {
             <div className="divide-y divide-neutral-100 dark:divide-neutral-800">
               {order.items.map((item, idx) => (
                 <div key={idx} className="p-4 flex items-center gap-4">
-                  <div className="w-16 h-16 rounded-lg bg-neutral-100 dark:bg-neutral-800 overflow-hidden flex-shrink-0 relative">
+                  <div className="w-16 h-16 rounded-lg bg-neutral-100 dark:bg-neutral-800 overflow-hidden shrink-0 relative">
                     {item.image && (
                       <Image
                         src={item.image}

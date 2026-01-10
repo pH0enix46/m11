@@ -16,12 +16,12 @@ export default function AdminHeader() {
       </div>
 
       <div className="flex items-center gap-4">
-        <button className="relative p-2 text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 rounded-lg transition-colors">
+        <button className="relative p-2 text-neutral-500 hover:bg-neutral-100 dark:text-neutral-400 dark:hover:bg-neutral-800 rounded-lg transition-colors cursor-pointer">
           <HugeiconsIcon icon={Notification03Icon} size={24} />
           <span className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full ring-2 ring-white dark:ring-neutral-900"></span>
         </button>
         <div className="flex items-center gap-3 pl-4 border-l border-neutral-200 dark:border-neutral-800">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-red-500 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
+          <div className="w-8 h-8 rounded-full bg-linear-to-tr from-red-500 to-orange-500 flex items-center justify-center text-white font-bold text-sm">
             A
           </div>
           <div className="hidden sm:block">

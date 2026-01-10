@@ -24,7 +24,7 @@ export default function AdminSidebar() {
   return (
     <aside className="w-64 h-screen bg-neutral-900 text-white fixed left-0 top-0 overflow-y-auto border-r border-neutral-800 hidden md:flex flex-col">
       <div className="p-6 border-b border-neutral-800">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
+        <h1 className="text-2xl font-bold bg-linear-to-r from-red-500 to-orange-500 bg-clip-text text-transparent">
           Admin Panel
         </h1>
       </div>

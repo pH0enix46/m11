@@ -8,23 +8,128 @@ import { IOrder } from "@/lib/types";
 import { useEffect } from "react";
 import {
   Search01Icon,
-  FilterHorizontalIcon,
   EyeIcon,
+  Cancel01Icon,
 } from "@hugeicons/core-free-icons";
+import { toast } from "react-hot-toast";
+
+const dummyOrders: IOrder[] = [
+  {
+    _id: "dummy-1",
+    orderNumber: "ORD-7721",
+    user: { _id: "u1", name: "Ahmed Faraz", email: "ahmed@example.com" },
+    items: [
+      {
+        product: "p1",
+        name: "Ryder Blackout Leather",
+        selectedSize: "XL",
+        quantity: 1,
+        price: 12500,
+        image: "/products/classic/1.jpg",
+      },
+    ],
+    shippingAddress: {
+      street: "Gulshan 2",
+      city: "Dhaka",
+      state: "Dhaka",
+      zipCode: "1212",
+      country: "Bangladesh",
+      phone: "01712345678",
+    },
+    paymentMethod: "bkash",
+    paymentStatus: "paid",
+    itemsPrice: 12500,
+    shippingPrice: 100,
+    taxPrice: 0,
+    totalPrice: 12600,
+    orderStatus: "processing",
+    createdAt: new Date().toISOString(),
+  },
+  {
+    _id: "dummy-2",
+    orderNumber: "ORD-9932",
+    user: { _id: "u2", name: "Sara Islam", email: "sara.i@example.com" },
+    items: [
+      {
+        product: "p2",
+        name: "Apex Sport Fusion",
+        selectedSize: "M",
+        quantity: 1,
+        price: 8500,
+        image: "/products/sport/2.jpg",
+      },
+    ],
+    shippingAddress: {
+      street: "Banani 11",
+      city: "Dhaka",
+      state: "Dhaka",
+      zipCode: "1213",
+      country: "Bangladesh",
+      phone: "01887654321",
+    },
+    paymentMethod: "cash",
+    paymentStatus: "pending",
+    itemsPrice: 8500,
+    shippingPrice: 100,
+    taxPrice: 0,
+    totalPrice: 8600,
+    orderStatus: "pending",
+    createdAt: new Date(Date.now() - 86400000).toISOString(),
+  },
+  {
+    _id: "dummy-3",
+    orderNumber: "ORD-4410",
+    user: { _id: "u3", name: "Tanvir Hasan", email: "tanvir.h@example.com" },
+    items: [
+      {
+        product: "p3",
+        name: "Premium Onyx Edition",
+        selectedSize: "L",
+        quantity: 2,
+        price: 15000,
+        image: "/products/premium/3.jpg",
+      },
+    ],
+    shippingAddress: {
+      street: "Nasirabad",
+      city: "Chittagong",
+      state: "Chittagong",
+      zipCode: "4000",
+      country: "Bangladesh",
+      phone: "01991122334",
+    },
+    paymentMethod: "nagad",
+    paymentStatus: "paid",
+    itemsPrice: 30000,
+    shippingPrice: 150,
+    taxPrice: 0,
+    totalPrice: 30150,
+    orderStatus: "delivered",
+    createdAt: new Date(Date.now() - 172800000).toISOString(),
+  },
+];
 
 export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [orders, setOrders] = useState<IOrder[]>([]);
+  const [selectedStatus, setSelectedStatus] = useState<string>("All");
   const [loading, setLoading] = useState(true);
 
   const fetchOrders = async () => {
     try {
       const res = await getAllOrdersAction();
       if (res.success) {
-        setOrders(res.data);
+        // Show real orders plus dummy ones for testing
+        setOrders([...dummyOrders, ...res.data]);
+      } else {
+        setOrders(dummyOrders); // Fallback to dummy data for testing if fetch fails
+        toast.error(
+          res.message || "Failed to fetch orders, showing dummy data"
+        );
       }
     } catch (error) {
       console.error("Failed to fetch orders:", error);
+      toast.error("An error occurred while fetching orders");
     } finally {
       setLoading(false);
     }
@@ -34,12 +139,26 @@ export default function OrdersPage() {
     fetchOrders();
   }, []);
 
-  const filteredOrders = orders.filter(
-    (o) =>
+  const filteredOrders = orders.filter((o) => {
+    const matchesSearch =
       o.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (typeof o.user === "object" &&
-        o.user.email.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+        o.user.email.toLowerCase().includes(searchTerm.toLowerCase()));
+
+    const matchesStatus =
+      selectedStatus === "All" || o.orderStatus === selectedStatus;
+
+    return matchesSearch && matchesStatus;
+  });
+
+  const statuses = [
+    "All",
+    "pending",
+    "processing",
+    "shipped",
+    "delivered",
+    "cancelled",
+  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -68,9 +187,10 @@ export default function OrdersPage() {
       </div>
 
       <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-100 dark:border-neutral-800 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-neutral-100 dark:border-neutral-800 flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400">
+        <div className="p-5 border-b border-neutral-100 dark:border-neutral-800 flex flex-col lg:flex-row gap-5">
+          {/* Enhanced Search */}
+          <div className="relative flex-1 group">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-red-500 transition-colors">
               <HugeiconsIcon icon={Search01Icon} size={20} />
             </div>
             <input
@@ -78,13 +198,36 @@ export default function OrdersPage() {
               placeholder="Search by Order ID or Email..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl py-2.5 pl-12 pr-4 text-neutral-900 dark:text-white placeholder-neutral-500 focus:ring-2 focus:ring-red-500/20"
+              className="w-full bg-neutral-50 dark:bg-neutral-800 border-2 border-transparent focus:border-red-500/10 focus:bg-white dark:focus:bg-neutral-900 rounded-2xl py-3 pl-12 pr-12 text-neutral-900 dark:text-white placeholder-neutral-500 transition-all outline-none"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-red-600 hover:bg-neutral-100 dark:hover:bg-neutral-800 rounded-full transition-all cursor-pointer"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={16} />
+              </button>
+            )}
           </div>
-          <button className="px-4 py-2.5 bg-neutral-50 dark:bg-neutral-800 rounded-full text-neutral-600 dark:text-neutral-300 font-medium flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors cursor-pointer">
-            <HugeiconsIcon icon={FilterHorizontalIcon} size={20} />
-            Filter
-          </button>
+
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Status Tabs */}
+            <div className="flex bg-neutral-50 dark:bg-neutral-800 p-1 rounded-2xl border border-neutral-100 dark:border-neutral-700 overflow-x-auto no-scrollbar">
+              {statuses.map((s) => (
+                <button
+                  key={s}
+                  onClick={() => setSelectedStatus(s)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer whitespace-nowrap capitalize ${
+                    selectedStatus === s
+                      ? "bg-white dark:bg-neutral-700 text-red-600 shadow-sm"
+                      : "text-neutral-500 hover:text-neutral-700 dark:hover:text-neutral-300"
+                  }`}
+                >
+                  {s}
+                </button>
+              ))}
+            </div>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -159,8 +302,8 @@ export default function OrdersPage() {
                           </p>
                         </div>
                       </td>
-                      <td className="px-6 py-4 font-medium text-neutral-900 dark:text-white">
-                        ${order.totalPrice.toFixed(2)}
+                      <td className="px-6 py-4 font-bold text-neutral-900 dark:text-white">
+                        ৳{order.totalPrice.toFixed(0)}
                       </td>
                       <td className="px-6 py-4">
                         <span

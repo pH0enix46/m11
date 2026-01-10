@@ -17,6 +17,7 @@ import {
 import Link from "next/link";
 import { createProductAction, updateProductAction } from "@/lib/actions";
 import { toast } from "react-hot-toast";
+import { supabase } from "@/lib/supabase";
 
 interface ProductFormProps {
   initialData?: IProduct;
@@ -31,6 +32,7 @@ export default function ProductForm({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
   const [previews, setPreviews] = useState<string[]>(initialData?.images || []);
+  const [uploading, setUploading] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<Partial<IProduct>>(
     initialData || {
@@ -48,6 +50,7 @@ export default function ProductForm({
       badge: "",
     }
   );
+  const [images, setImages] = useState<string[]>([]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -112,37 +115,70 @@ export default function ProductForm({
     fileInputRef.current?.click();
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file && activeImageIndex !== null) {
-      // Get extension
-      const extension = file.name.split(".").pop();
+      setUploading(activeImageIndex);
+      const loadingToast = toast.loading("Uploading image to Supabase...");
 
-      // Create slug from product name or fallback to 'product'
-      const nameSlug = formData.name
-        ? formData.name
-            .toLowerCase()
-            .replace(/[^a-z0-9]+/g, "-")
-            .replace(/(^-|-$)/g, "")
-        : "product";
+      try {
+        const extension = file.name.split(".").pop();
+        const nameSlug = formData.name
+          ? formData.name
+              .toLowerCase()
+              .replace(/[^a-z0-9]+/g, "-")
+              .replace(/(^-|-$)/g, "")
+          : "product";
+        const randomHash = Math.random().toString(36).substring(2, 12);
+        const fileName = `${nameSlug}/${randomHash}.${extension}`;
 
-      // Generate random 10-character string
-      const randomHash = Math.random().toString(36).substring(2, 12);
+        // Upload to Supabase Storage
+        const { data, error } = await supabase.storage
+          .from("m11_products")
+          .upload(fileName, file, {
+            cacheControl: "3600",
+            upsert: true,
+            contentType: file.type,
+          });
 
-      // Construct path: /products/slug/random.extension
-      const path = `/products/${nameSlug}/${randomHash}.${extension}`;
+        if (error) throw error;
 
-      // Update form data (actual path for DB)
-      handleImageChange(activeImageIndex, path);
+        // Get Public URL
+        const {
+          data: { publicUrl },
+        } = supabase.storage.from("m11_products").getPublicUrl(data.path);
 
-      // Create temporary blob URL for instant preview
-      const objectUrl = URL.createObjectURL(file);
-      const newPreviews = [...previews];
-      newPreviews[activeImageIndex] = objectUrl;
-      setPreviews(newPreviews);
+        // console.log("After Fetch: ", publicUrl);
 
-      // Reset input
-      e.target.value = "";
+        setImages([...images, publicUrl]);
+        console.log("After Set: ", images);
+
+        setFormData({
+          ...formData,
+          images: [...(formData.images || []), publicUrl],
+        });
+
+        // console.log("After Set: ", publicUrl);
+        console.log(formData);
+
+        // Update form data (actual URL for DB)
+        handleImageChange(activeImageIndex, publicUrl);
+
+        // Update preview
+        const newPreviews = [...previews];
+        newPreviews[activeImageIndex] = publicUrl;
+        setPreviews(newPreviews);
+
+        toast.success("Image uploaded successfully!", { id: loadingToast });
+      } catch (error: any) {
+        console.error("FULL UPLOAD ERROR:", error);
+        const message =
+          error.message || error.error_description || "Upload failed";
+        toast.error(`Error: ${message}`, { id: loadingToast });
+      } finally {
+        setUploading(null);
+        e.target.value = "";
+      }
     }
   };
 
@@ -288,15 +324,23 @@ export default function ProductForm({
                   <div key={index} className="flex gap-4">
                     <button
                       type="button"
+                      disabled={uploading !== null}
                       onClick={() => triggerFileSelect(index)}
                       className="w-16 h-16 rounded-lg bg-neutral-100 dark:bg-neutral-800 shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-700 relative hover:ring-2 hover:ring-red-500/20 transition-all cursor-pointer group/img"
                     >
-                      {previews[index] || url ? (
+                      {uploading === index ? (
+                        <div className="w-full h-full flex items-center justify-center bg-neutral-900/50">
+                          <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        </div>
+                      ) : previews[index] || url ? (
                         <Image
                           src={previews[index] || url}
                           alt="Preview"
                           fill
-                          unoptimized={!!previews[index]}
+                          unoptimized={
+                            !!previews[index] &&
+                            previews[index].startsWith("blob:")
+                          }
                           className="object-cover group-hover/img:scale-110 transition-transform"
                           sizes="64px"
                         />
