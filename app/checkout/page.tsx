@@ -27,8 +27,11 @@ const CheckoutPage = () => {
     email: "",
     firstName: "",
     lastName: "",
-    address: "",
+    street: "",
     city: "",
+    state: "",
+    zipCode: "",
+    country: "",
     phone: "",
   });
 
@@ -219,21 +222,52 @@ const CheckoutPage = () => {
                 <input
                   required
                   type="text"
-                  name="address"
+                  name="street"
                   placeholder="Street Address"
-                  value={formData.address}
+                  value={formData.street}
                   onChange={handleInputChange}
                   className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
                 />
-                <input
-                  required
-                  type="text"
-                  name="city"
-                  placeholder="City"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
-                />
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    required
+                    type="text"
+                    name="city"
+                    placeholder="City"
+                    value={formData.city}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
+                  />
+                  <input
+                    required
+                    type="text"
+                    name="state"
+                    placeholder="State / Province"
+                    value={formData.state}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    required
+                    type="text"
+                    name="zipCode"
+                    placeholder="Postal / Zip Code"
+                    value={formData.zipCode}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
+                  />
+                  <input
+                    required
+                    type="text"
+                    name="country"
+                    placeholder="Country"
+                    value={formData.country}
+                    onChange={handleInputChange}
+                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
+                  />
+                </div>
               </section>
 
               {/* Payment Info */}
