@@ -11,8 +11,11 @@ export default function ConditionalLayout({
 }) {
   const pathname = usePathname();
 
-  // Hide navbar and footer on auth pages
-  const isAuthPage = pathname === "/login" || pathname === "/register";
+  // Hide navbar and footer on auth pages and admin dashboard
+  const isAuthPage =
+    pathname === "/login" ||
+    pathname === "/register" ||
+    pathname?.startsWith("/admin");
 
   if (isAuthPage) {
     return <>{children}</>;

@@ -35,6 +35,7 @@ const AuthPage = () => {
     email: "",
     phone: "",
     password: "",
+    identifier: "",
   });
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -46,9 +47,15 @@ const AuthPage = () => {
     setLoading(true);
     setError("");
 
-    const payload = isLogin
-      ? { phone: formData.phone, password: formData.password }
-      : formData;
+    let payload;
+    if (isLogin) {
+      const isEmail = formData.identifier.includes("@");
+      payload = isEmail
+        ? { email: formData.identifier, password: formData.password }
+        : { phone: formData.identifier, password: formData.password };
+    } else {
+      payload = formData;
+    }
 
     try {
       const data = isLogin
@@ -57,7 +64,11 @@ const AuthPage = () => {
 
       if (data.success) {
         authLogin(data.user as User);
-        window.location.href = "/";
+        if (data.user?.role === "admin" || data.user?.role === "Admin") {
+          window.location.href = "/admin";
+        } else {
+          window.location.href = "/";
+        }
       } else {
         setError(data.message || "Invalid credentials");
       }
@@ -141,11 +152,11 @@ const AuthPage = () => {
                 <HugeiconsIcon icon={SmartPhone01Icon} size={20} />
               </div>
               <input
-                type="tel"
-                name="phone"
-                placeholder="PHONE NUMBER"
+                type={isLogin ? "text" : "tel"}
+                name={isLogin ? "identifier" : "phone"}
+                placeholder={isLogin ? "PHONE NUMBER OR EMAIL" : "PHONE NUMBER"}
                 required
-                value={formData.phone}
+                value={isLogin ? formData.identifier : formData.phone}
                 onChange={handleInputChange}
                 className={inputStyle}
               />

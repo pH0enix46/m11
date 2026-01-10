@@ -53,7 +53,7 @@ export default function AdminSidebar() {
 
       <div className="p-4 border-t border-neutral-800">
         <button
-          onClick={() => (window.location.href = "/admin/login")}
+          onClick={() => (window.location.href = "/login")}
           className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 hover:bg-red-900/20 hover:text-red-500 transition-colors"
         >
           <HugeiconsIcon icon={Logout03Icon} size={20} />
