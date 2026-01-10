@@ -310,12 +310,14 @@ const ProductDetailPage = () => {
                     {product.description}
                   </p>
                   <ul className="space-y-3 p-0 list-none font-medium">
-                    {product.features.map((feature: string, idx: number) => (
-                      <li key={idx} className="flex items-start gap-3">
-                        <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-red-600 shrink-0" />
-                        {feature}
-                      </li>
-                    ))}
+                    {product.features &&
+                      product.features.length > 0 &&
+                      product.features.map((feature: string, idx: number) => (
+                        <li key={idx} className="flex items-start gap-3">
+                          <div className="mt-1.5 h-1.5 w-1.5 rounded-full bg-red-600 shrink-0" />
+                          {feature}
+                        </li>
+                      ))}
                   </ul>
                 </div>
               </section>
