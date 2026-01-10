@@ -1,0 +1,363 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import Image from "next/image";
+import { IProduct } from "@/lib/types";
+import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  ImageAdd02Icon,
+  LeftToRightListNumberIcon,
+  Tag01Icon,
+  Money03Icon,
+  Tick02Icon,
+  ArrowLeft02Icon,
+} from "@hugeicons/core-free-icons";
+import Link from "next/link";
+
+interface ProductFormProps {
+  initialData?: IProduct;
+  isNew?: boolean;
+}
+
+export default function ProductForm({
+  initialData,
+  isNew = false,
+}: ProductFormProps) {
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+  const [formData, setFormData] = useState<Partial<IProduct>>(
+    initialData || {
+      name: "",
+      slug: "",
+      description: "",
+      price: 0,
+      discountPrice: 0,
+      category: "Classic",
+      images: [""],
+      features: [],
+      sizes: [],
+      isActive: true,
+      badge: "",
+    }
+  );
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    // Simulate API call
+    setTimeout(() => {
+      alert("Product saved successfully (Mock)");
+      setLoading(false);
+      router.push("/admin/products");
+    }, 1000);
+  };
+
+  const handleImageChange = (index: number, value: string) => {
+    const newImages = [...(formData.images || [])];
+    newImages[index] = value;
+    setFormData({ ...formData, images: newImages });
+  };
+
+  const addImageField = () => {
+    setFormData({ ...formData, images: [...(formData.images || []), ""] });
+  };
+
+  return (
+    <div className="max-w-4xl mx-auto">
+      <div className="flex items-center gap-4 mb-6">
+        <Link
+          href="/admin/products"
+          className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+        >
+          <HugeiconsIcon
+            icon={ArrowLeft02Icon}
+            size={24}
+            className="text-neutral-500"
+          />
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold text-neutral-900 dark:text-white">
+            {isNew ? "Add New Product" : "Edit Product"}
+          </h1>
+          <p className="text-neutral-500 text-sm">
+            {isNew
+              ? "Create a new product to add to your catalog"
+              : `Editing: ${formData.name}`}
+          </p>
+        </div>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Main Info */}
+          <div className="lg:col-span-2 space-y-6">
+            <div className="bg-white dark:bg-neutral-900 p-6 rounded-2xl border border-neutral-100 dark:border-neutral-800 shadow-sm space-y-6">
+              <h2 className="text-lg font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                <HugeiconsIcon
+                  icon={Tag01Icon}
+                  size={20}
+                  className="text-red-500"
+                />
+                Basic Information
+              </h2>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    Product Name
+                  </label>
+                  <input
+                    type="text"
+                    required
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    className="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+                    placeholder="e.g. Classic Leather Jacket"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    Description
+                  </label>
+                  <textarea
+                    required
+                    rows={4}
+                    value={formData.description}
+                    onChange={(e) =>
+                      setFormData({ ...formData, description: e.target.value })
+                    }
+                    className="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all resize-none"
+                    placeholder="Describe your product..."
+                  />
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      Category
+                    </label>
+                    <select
+                      value={formData.category}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          category: e.target.value as any,
+                        })
+                      }
+                      className="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all appearance-none"
+                    >
+                      <option value="Classic">Classic</option>
+                      <option value="Premium">Premium</option>
+                      <option value="Sport">Sport</option>
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                      Badge (Optional)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.badge || ""}
+                      onChange={(e) =>
+                        setFormData({ ...formData, badge: e.target.value })
+                      }
+                      className="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+                      placeholder="e.g. Best Seller"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-neutral-900 p-6 rounded-2xl border border-neutral-100 dark:border-neutral-800 shadow-sm space-y-6">
+              <div className="flex items-center justify-between">
+                <h2 className="text-lg font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                  <HugeiconsIcon
+                    icon={ImageAdd02Icon}
+                    size={20}
+                    className="text-red-500"
+                  />
+                  Media
+                </h2>
+                <button
+                  type="button"
+                  onClick={addImageField}
+                  className="text-sm font-medium text-red-600 hover:text-red-700"
+                >
+                  + Add URL
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {formData.images?.map((url, index) => (
+                  <div key={index} className="flex gap-4">
+                    <div className="w-16 h-16 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex-shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-700 relative">
+                      {url ? (
+                        <Image
+                          src={url}
+                          alt="Preview"
+                          fill
+                          className="object-cover"
+                          sizes="64px"
+                        />
+                      ) : (
+                        <div className="w-full h-full flex items-center justify-center text-neutral-400">
+                          <HugeiconsIcon icon={ImageAdd02Icon} size={24} />
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      type="text"
+                      value={url}
+                      onChange={(e) => handleImageChange(index, e.target.value)}
+                      className="flex-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+                      placeholder="https://..."
+                    />
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          {/* Sidebar Info */}
+          <div className="space-y-6">
+            <div className="bg-white dark:bg-neutral-900 p-6 rounded-2xl border border-neutral-100 dark:border-neutral-800 shadow-sm space-y-6">
+              <h2 className="text-lg font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                <HugeiconsIcon
+                  icon={Money03Icon}
+                  size={20}
+                  className="text-red-500"
+                />
+                Pricing
+              </h2>
+
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    Base Price
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500">
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      required
+                      min="0"
+                      step="0.01"
+                      value={formData.price}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          price: parseFloat(e.target.value),
+                        })
+                      }
+                      className="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl py-3 pl-8 pr-4 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    Discount Price
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-500">
+                      $
+                    </span>
+                    <input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.discountPrice || 0}
+                      onChange={(e) =>
+                        setFormData({
+                          ...formData,
+                          discountPrice: parseFloat(e.target.value),
+                        })
+                      }
+                      className="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl py-3 pl-8 pr-4 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-white dark:bg-neutral-900 p-6 rounded-2xl border border-neutral-100 dark:border-neutral-800 shadow-sm space-y-6">
+              <h2 className="text-lg font-bold text-neutral-900 dark:text-white flex items-center gap-2">
+                <HugeiconsIcon
+                  icon={LeftToRightListNumberIcon}
+                  size={20}
+                  className="text-red-500"
+                />
+                Inventory & Variants
+              </h2>
+
+              <div className="space-y-4">
+                <div className="flex items-center justify-between p-4 bg-neutral-50 dark:bg-neutral-800 rounded-xl">
+                  <span className="font-medium text-neutral-700 dark:text-neutral-300">
+                    Active Status
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setFormData({ ...formData, isActive: !formData.isActive })
+                    }
+                    className={`w-12 h-6 rounded-full transition-colors relative ${
+                      formData.isActive
+                        ? "bg-green-500"
+                        : "bg-neutral-300 dark:bg-neutral-700"
+                    }`}
+                  >
+                    <span
+                      className={`absolute top-1 left-1 w-4 h-4 bg-white rounded-full transition-transform ${
+                        formData.isActive ? "translate-x-6" : ""
+                      }`}
+                    />
+                  </button>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    Sizes (Comma separated)
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.sizes?.join(", ")}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        sizes: e.target.value.split(",").map((s) => s.trim()),
+                      })
+                    }
+                    className="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+                    placeholder="S, M, L, XL"
+                  />
+                </div>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-600/20 hover:shadow-red-600/30 transition-all flex items-center justify-center gap-2"
+            >
+              {loading ? (
+                <span>Saving...</span>
+              ) : (
+                <>
+                  <HugeiconsIcon icon={Tick02Icon} size={20} />
+                  Save Product
+                </>
+              )}
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  );
+}
