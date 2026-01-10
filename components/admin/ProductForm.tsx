@@ -16,6 +16,7 @@ import {
 } from "@hugeicons/core-free-icons";
 import Link from "next/link";
 import { createProductAction, updateProductAction } from "@/lib/actions";
+import { toast } from "react-hot-toast";
 
 interface ProductFormProps {
   initialData?: IProduct;
@@ -49,8 +50,9 @@ export default function ProductForm({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setLoading(true);
-
+    const loadingToast = toast.loading(
+      isNew ? "Creating product..." : "Updating product..."
+    );
     try {
       let res;
       if (isNew) {
@@ -60,19 +62,24 @@ export default function ProductForm({
       }
 
       if (res.success) {
-        alert(
+        toast.success(
           isNew
             ? "Product created successfully"
-            : "Product updated successfully"
+            : "Product updated successfully",
+          { id: loadingToast }
         );
         router.push("/admin/products");
         router.refresh();
       } else {
-        alert(res.message || "Failed to save product");
+        toast.error(res.message || "Failed to save product", {
+          id: loadingToast,
+        });
       }
     } catch (error) {
       console.error("Save product error:", error);
-      alert("An error occurred while saving the product");
+      toast.error("An error occurred while saving the product", {
+        id: loadingToast,
+      });
     } finally {
       setLoading(false);
     }

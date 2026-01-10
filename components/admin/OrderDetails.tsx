@@ -29,7 +29,7 @@ export default function OrderDetails({ order }: { order: IOrder }) {
     try {
       const res = await updateOrderStatusAction(order._id, newStatus);
       if (res.success) {
-        setStatus(newStatus as any);
+        setStatus(newStatus as IOrder["orderStatus"]);
         alert(`Order status updated to ${newStatus}`);
       } else {
         alert(res.message || "Failed to update status");

@@ -101,73 +101,99 @@ export default function OrdersPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-              {filteredOrders.map((order) => (
-                <tr
-                  key={order._id}
-                  className="hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors"
-                >
-                  <td className="px-6 py-4 font-medium text-neutral-900 dark:text-white">
-                    {order.orderNumber}
-                  </td>
-                  <td className="px-6 py-4 text-neutral-500 text-sm">
-                    {order.createdAt
-                      ? new Date(order.createdAt).toLocaleDateString()
-                      : "N/A"}
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="text-sm">
-                      <p className="font-medium text-neutral-900 dark:text-white">
-                        {typeof order.user === "object"
-                          ? order.user.name
-                          : `UID: ${order.user}`}
-                      </p>
-                      <p className="text-neutral-500">
-                        {typeof order.user === "object"
-                          ? order.user.email
-                          : order.shippingAddress.phone}
-                      </p>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 font-medium text-neutral-900 dark:text-white">
-                    ${order.totalPrice.toFixed(2)}
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${
-                        order.paymentStatus === "paid"
-                          ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
-                          : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30"
-                      }`}
+              {loading
+                ? [...Array(5)].map((_, idx) => (
+                    <tr key={idx} className="animate-pulse">
+                      <td className="px-6 py-4">
+                        <div className="h-4 bg-neutral-100 dark:bg-neutral-800 rounded w-24" />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-4 bg-neutral-100 dark:bg-neutral-800 rounded w-20" />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="space-y-2">
+                          <div className="h-4 bg-neutral-100 dark:bg-neutral-800 rounded w-32" />
+                          <div className="h-3 bg-neutral-100 dark:bg-neutral-800 rounded w-40" />
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-4 bg-neutral-100 dark:bg-neutral-800 rounded w-16" />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-6 bg-neutral-100 dark:bg-neutral-800 rounded-full w-16" />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-6 bg-neutral-100 dark:bg-neutral-800 rounded-full w-20" />
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-2 text-transparent">
+                          Actions
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                : filteredOrders.map((order) => (
+                    <tr
+                      key={order._id}
+                      className="hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors"
                     >
-                      {order.paymentStatus}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span
-                      className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
-                        order.orderStatus
-                      )}`}
-                    >
-                      {order.orderStatus}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <Link
-                      href={`/admin/orders/${order._id}`}
-                      className="inline-flex p-2 text-neutral-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors cursor-pointer"
-                    >
-                      <HugeiconsIcon icon={EyeIcon} size={20} />
-                    </Link>
-                  </td>
-                </tr>
-              ))}
+                      <td className="px-6 py-4 font-medium text-neutral-900 dark:text-white">
+                        {order.orderNumber}
+                      </td>
+                      <td className="px-6 py-4 text-neutral-500 text-sm">
+                        {order.createdAt
+                          ? new Date(order.createdAt).toLocaleDateString()
+                          : "N/A"}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm">
+                          <p className="font-medium text-neutral-900 dark:text-white">
+                            {typeof order.user === "object"
+                              ? order.user.name
+                              : `UID: ${order.user}`}
+                          </p>
+                          <p className="text-neutral-500">
+                            {typeof order.user === "object"
+                              ? order.user.email
+                              : order.shippingAddress.phone}
+                          </p>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 font-medium text-neutral-900 dark:text-white">
+                        ${order.totalPrice.toFixed(2)}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${
+                            order.paymentStatus === "paid"
+                              ? "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                              : "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30"
+                          }`}
+                        >
+                          {order.paymentStatus}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-2.5 py-1 rounded-full text-xs font-medium capitalize ${getStatusColor(
+                            order.orderStatus
+                          )}`}
+                        >
+                          {order.orderStatus}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <Link
+                          href={`/admin/orders/${order._id}`}
+                          className="inline-flex p-2 text-neutral-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors cursor-pointer"
+                        >
+                          <HugeiconsIcon icon={EyeIcon} size={20} />
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
             </tbody>
           </table>
-          {loading && (
-            <div className="p-12 text-center text-neutral-500">
-              Loading orders...
-            </div>
-          )}
         </div>
         {!loading && filteredOrders.length === 0 && (
           <div className="p-12 text-center text-neutral-500">

@@ -14,6 +14,7 @@ import {
 import { getAllProductsAction, deleteProductAction } from "@/lib/actions";
 import { IProduct } from "@/lib/types";
 import { useEffect } from "react";
+import { toast } from "react-hot-toast";
 
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -27,9 +28,12 @@ export default function ProductsPage() {
       const res = await getAllProductsAction();
       if (res.success) {
         setProducts(res.data);
+      } else {
+        toast.error(res.message || "Failed to fetch products");
       }
     } catch (error) {
       console.error("Failed to fetch products:", error);
+      toast.error("An error occurred while fetching products");
     } finally {
       setLoading(false);
     }
@@ -41,15 +45,20 @@ export default function ProductsPage() {
 
   const handleDelete = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this product?")) {
+      const loadingToast = toast.loading("Deleting product...");
       try {
         const res = await deleteProductAction(id);
         if (res.success) {
           setProducts(products.filter((p) => p._id !== id));
+          toast.success("Product deleted successfully", { id: loadingToast });
         } else {
-          alert(res.message);
+          toast.error(res.message || "Failed to delete product", {
+            id: loadingToast,
+          });
         }
       } catch (error) {
         console.error("Delete error:", error);
+        toast.error("An error occurred", { id: loadingToast });
       }
     }
   };
@@ -100,7 +109,7 @@ export default function ProductsPage() {
               placeholder="Search by name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-neutral-50 dark:bg-neutral-800 border-2 border-transparent focus:border-red-500/10 focus:bg-white dark:focus:bg-neutral-900 rounded-2xl py-3 pl-12 pr-12 text-neutral-900 dark:text-white placeholder-neutral-500 transition-all outline-none"
+              className="w-full bg-neutral-50 dark:bg-neutral-800 border-2 border-transparent focus:border-red-500/10 focus:bg-white dark:focus:bg-neutral-900 rounded-2xl py-2 pl-12 pr-12 text-neutral-900 dark:text-white placeholder-neutral-500 transition-all outline-none"
             />
             {searchTerm && (
               <button
@@ -157,84 +166,107 @@ export default function ProductsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-neutral-100 dark:divide-neutral-800">
-              {filteredProducts.map((product) => (
-                <tr
-                  key={product._id}
-                  className="hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors"
-                >
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 rounded-lg bg-neutral-100 dark:bg-neutral-800 overflow-hidden relative">
-                        <Image
-                          src={product.images[0]}
-                          alt={product.name}
-                          fill
-                          className="object-cover"
-                          sizes="48px"
-                        />
-                      </div>
-                      <div>
-                        <h3 className="font-medium text-neutral-900 dark:text-white">
-                          {product.name}
-                        </h3>
-                        <p className="text-sm text-neutral-500 truncate max-w-[200px]">
-                          {product.description}
-                        </p>
-                      </div>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <span className="px-3 py-1 bg-neutral-100 dark:bg-neutral-800 rounded-full text-sm font-medium text-neutral-600 dark:text-neutral-300">
-                      {product.category}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="font-medium text-neutral-900 dark:text-white">
-                      ৳{product.price}
-                      {product.discountPrice && (
-                        <span className="text-sm text-neutral-400 line-through ml-2">
-                          ৳{product.discountPrice}
+              {loading
+                ? [...Array(5)].map((_, idx) => (
+                    <tr key={idx} className="animate-pulse">
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-lg bg-neutral-100 dark:bg-neutral-800" />
+                          <div className="space-y-2">
+                            <div className="h-4 bg-neutral-100 dark:bg-neutral-800 rounded w-32" />
+                            <div className="h-3 bg-neutral-100 dark:bg-neutral-800 rounded w-48" />
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-6 bg-neutral-100 dark:bg-neutral-800 rounded-full w-20" />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-4 bg-neutral-100 dark:bg-neutral-800 rounded w-16" />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-4 bg-neutral-100 dark:bg-neutral-800 rounded w-24" />
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex justify-end gap-2 text-transparent">
+                          Actions
+                        </div>
+                      </td>
+                    </tr>
+                  ))
+                : filteredProducts.map((product) => (
+                    <tr
+                      key={product._id}
+                      className="hover:bg-neutral-50 dark:hover:bg-neutral-800/30 transition-colors"
+                    >
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-lg bg-neutral-100 dark:bg-neutral-800 overflow-hidden relative">
+                            <Image
+                              src={product.images[0]}
+                              alt={product.name}
+                              fill
+                              className="object-cover"
+                              sizes="48px"
+                            />
+                          </div>
+                          <div>
+                            <h3 className="font-medium text-neutral-900 dark:text-white">
+                              {product.name}
+                            </h3>
+                            <p className="text-sm text-neutral-500 truncate max-w-[200px]">
+                              {product.description}
+                            </p>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="px-3 py-1 bg-neutral-100 dark:bg-neutral-800 rounded-full text-sm font-medium text-neutral-600 dark:text-neutral-300">
+                          {product.category}
                         </span>
-                      )}
-                    </div>
-                  </td>
-                  <td className="px-6 py-4">
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`w-2 h-2 rounded-full ${
-                          product.isActive ? "bg-green-500" : "bg-red-500"
-                        }`}
-                      />
-                      <span className="text-sm text-neutral-600 dark:text-neutral-400">
-                        {product.isActive ? "Active" : "Draft"}
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    <div className="flex items-center justify-end gap-2">
-                      <Link
-                        href={`/admin/products/${product._id}`}
-                        className="p-2 text-neutral-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors cursor-pointer"
-                      >
-                        <HugeiconsIcon icon={PencilEdit02Icon} size={20} />
-                      </Link>
-                      <button
-                        className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors cursor-pointer"
-                        onClick={() => handleDelete(product._id)}
-                      >
-                        <HugeiconsIcon icon={Delete02Icon} size={20} />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))}
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="font-medium text-neutral-900 dark:text-white">
+                          ৳{product.price}
+                          {product.discountPrice && (
+                            <span className="text-sm text-neutral-400 line-through ml-2">
+                              ৳{product.discountPrice}
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`w-2 h-2 rounded-full ${
+                              product.isActive ? "bg-green-500" : "bg-red-500"
+                            }`}
+                          />
+                          <span className="text-sm text-neutral-600 dark:text-neutral-400">
+                            {product.isActive ? "Active" : "Draft"}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <Link
+                            href={`/admin/products/${product._id}`}
+                            className="p-2 text-neutral-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors cursor-pointer"
+                          >
+                            <HugeiconsIcon icon={PencilEdit02Icon} size={20} />
+                          </Link>
+                          <button
+                            className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors cursor-pointer"
+                            onClick={() => handleDelete(product._id)}
+                          >
+                            <HugeiconsIcon icon={Delete02Icon} size={20} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
             </tbody>
           </table>
-          {loading && (
-            <div className="p-12 text-center text-neutral-500">
-              Loading products...
-            </div>
-          )}
         </div>
 
         {!loading && filteredProducts.length === 0 && (

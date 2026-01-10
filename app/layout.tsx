@@ -5,6 +5,7 @@ import SmoothScroll from "@/components/ui/SmoothScroll";
 import { CartProvider } from "@/context/CartContext";
 import { AuthProvider } from "@/context/AuthContext";
 import ConditionalLayout from "@/components/common/ConditionalLayout";
+import { Toaster } from "react-hot-toast";
 
 const inter = Inter({
   variable: "--font-inter",
@@ -35,6 +36,7 @@ export default function RootLayout({
           <CartProvider>
             <div className="overflow-x-hidden">
               <SmoothScroll />
+              <Toaster position="top-right" />
               <ConditionalLayout>{children}</ConditionalLayout>
             </div>
           </CartProvider>
