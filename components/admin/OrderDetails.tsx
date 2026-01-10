@@ -17,20 +17,29 @@ import {
   TruckDeliveryIcon,
 } from "@hugeicons/core-free-icons";
 import Link from "next/link";
+import { updateOrderStatusAction } from "@/lib/actions";
 
 export default function OrderDetails({ order }: { order: IOrder }) {
   const router = useRouter();
   const [status, setStatus] = useState(order.orderStatus);
   const [loading, setLoading] = useState(false);
 
-  const updateStatus = (newStatus: any) => {
+  const updateStatus = async (newStatus: string) => {
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      setStatus(newStatus);
+    try {
+      const res = await updateOrderStatusAction(order._id, newStatus);
+      if (res.success) {
+        setStatus(newStatus as any);
+        alert(`Order status updated to ${newStatus}`);
+      } else {
+        alert(res.message || "Failed to update status");
+      }
+    } catch (error) {
+      console.error("Update status error:", error);
+      alert("An error occurred while updating the status");
+    } finally {
       setLoading(false);
-      alert(`Order status updated to ${newStatus}`);
-    }, 800);
+    }
   };
 
   return (
@@ -39,7 +48,7 @@ export default function OrderDetails({ order }: { order: IOrder }) {
         <div className="flex items-center gap-4">
           <Link
             href="/admin/orders"
-            className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+            className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
           >
             <HugeiconsIcon
               icon={ArrowLeft02Icon}
@@ -73,7 +82,7 @@ export default function OrderDetails({ order }: { order: IOrder }) {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <button className="p-2.5 text-neutral-600 hover:bg-neutral-100 rounded-xl transition-colors border border-neutral-200 dark:border-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-800">
+          <button className="p-2.5 text-neutral-600 hover:bg-neutral-100 rounded-full transition-colors border border-neutral-200 dark:border-neutral-800 dark:text-neutral-400 dark:hover:bg-neutral-800 cursor-pointer">
             <HugeiconsIcon icon={PrinterIcon} size={20} />
           </button>
         </div>
@@ -187,15 +196,18 @@ export default function OrderDetails({ order }: { order: IOrder }) {
             </h3>
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-full bg-neutral-100 dark:bg-neutral-800 flex items-center justify-center text-neutral-600 dark:text-neutral-300 font-bold">
-                {order.shippingAddress.firstName[0]}
+                {typeof order.user === "object" ? order.user.name[0] : "U"}
               </div>
               <div>
                 <p className="font-medium text-neutral-900 dark:text-white">
-                  {order.shippingAddress.firstName}{" "}
-                  {order.shippingAddress.lastName}
+                  {typeof order.user === "object"
+                    ? order.user.name
+                    : `UID: ${order.user}`}
                 </p>
                 <p className="text-sm text-neutral-500">
-                  {order.shippingAddress.email}
+                  {typeof order.user === "object"
+                    ? order.user.email
+                    : order.shippingAddress.phone}
                 </p>
               </div>
             </div>
@@ -210,9 +222,12 @@ export default function OrderDetails({ order }: { order: IOrder }) {
                 Shipping Address
               </h4>
               <p className="text-sm text-neutral-500 leading-relaxed">
-                {order.shippingAddress.address}
+                {order.shippingAddress.street}
                 <br />
-                {order.shippingAddress.city}
+                {order.shippingAddress.city}, {order.shippingAddress.state}{" "}
+                {order.shippingAddress.zipCode}
+                <br />
+                {order.shippingAddress.country}
                 <br />
                 Phone: {order.shippingAddress.phone}
               </p>
@@ -229,7 +244,7 @@ export default function OrderDetails({ order }: { order: IOrder }) {
                 <button
                   onClick={() => updateStatus("processing")}
                   disabled={loading}
-                  className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-red-600 hover:bg-red-700 text-white rounded-full font-medium transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <HugeiconsIcon icon={Tick02Icon} size={20} />
                   Process Order
@@ -239,7 +254,7 @@ export default function OrderDetails({ order }: { order: IOrder }) {
                 <button
                   onClick={() => updateStatus("shipped")}
                   disabled={loading}
-                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-medium transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-full font-medium transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <HugeiconsIcon icon={TruckDeliveryIcon} size={20} />
                   Mark as Shipped
@@ -249,7 +264,7 @@ export default function OrderDetails({ order }: { order: IOrder }) {
                 <button
                   onClick={() => updateStatus("delivered")}
                   disabled={loading}
-                  className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-full font-medium transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <HugeiconsIcon icon={Tick02Icon} size={20} />
                   Mark Delivered
@@ -259,7 +274,7 @@ export default function OrderDetails({ order }: { order: IOrder }) {
                 <button
                   onClick={() => updateStatus("cancelled")}
                   disabled={loading}
-                  className="w-full py-3 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-xl font-medium transition-all flex items-center justify-center gap-2"
+                  className="w-full py-3 bg-neutral-100 hover:bg-neutral-200 dark:bg-neutral-800 dark:hover:bg-neutral-700 text-neutral-700 dark:text-neutral-300 rounded-full font-medium transition-all flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <HugeiconsIcon icon={Cancel01Icon} size={20} />
                   Cancel Order

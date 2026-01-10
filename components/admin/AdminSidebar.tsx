@@ -38,7 +38,7 @@ export default function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all duration-200 group ${
+              className={`flex items-center gap-3 px-4 py-3 rounded-full transition-all duration-200 group cursor-pointer ${
                 isActive
                   ? "bg-red-600 text-white shadow-lg shadow-red-600/20"
                   : "text-neutral-400 hover:bg-neutral-800 hover:text-white"
@@ -54,7 +54,7 @@ export default function AdminSidebar() {
       <div className="p-4 border-t border-neutral-800">
         <button
           onClick={() => (window.location.href = "/login")}
-          className="flex w-full items-center gap-3 px-4 py-3 rounded-xl text-neutral-400 hover:bg-red-900/20 hover:text-red-500 transition-colors"
+          className="flex w-full items-center gap-3 px-4 py-3 rounded-full text-neutral-400 hover:bg-red-900/20 hover:text-red-500 transition-colors cursor-pointer"
         >
           <HugeiconsIcon icon={Logout03Icon} size={20} />
           <span className="font-medium">Logout</span>

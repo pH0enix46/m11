@@ -12,7 +12,7 @@ export default function AdminDashboardLayout({
       <div className="md:ml-64 min-h-screen flex flex-col">
         <AdminHeader />
         <main className="flex-1 p-6 overflow-x-hidden">
-          <div className="max-w-7xl mx-auto space-y-6">{children}</div>
+          <div className="max-w-8xl mx-auto space-y-6">{children}</div>
         </main>
       </div>
     </div>

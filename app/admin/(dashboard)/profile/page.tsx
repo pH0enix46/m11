@@ -54,7 +54,7 @@ export default function ProfilePage() {
                 )}
               </div>
               <button
-                className="absolute bottom-0 right-0 p-2 bg-white dark:bg-neutral-800 rounded-full border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 transition-colors"
+                className="absolute bottom-0 right-0 p-2 bg-white dark:bg-neutral-800 rounded-full border border-neutral-200 dark:border-neutral-700 hover:bg-neutral-100 transition-colors cursor-pointer"
                 title="Change Avatar"
               >
                 <HugeiconsIcon
@@ -162,7 +162,7 @@ export default function ProfilePage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-xl shadow-lg shadow-red-600/20 hover:shadow-red-600/30 transition-all flex items-center gap-2"
+                className="bg-red-600 hover:bg-red-700 text-white font-bold py-3 px-8 rounded-full shadow-lg shadow-red-600/20 hover:shadow-red-600/30 transition-all flex items-center gap-2 cursor-pointer"
               >
                 {loading ? (
                   <span>Saving...</span>

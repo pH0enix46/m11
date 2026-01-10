@@ -3,25 +3,72 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { mockProducts } from "@/lib/mockData";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   PlusSignIcon,
   Search01Icon,
-  FilterHorizontalIcon,
   PencilEdit02Icon,
   Delete02Icon,
+  Cancel01Icon,
 } from "@hugeicons/core-free-icons";
-import { motion } from "motion/react";
+import { getAllProductsAction, deleteProductAction } from "@/lib/actions";
+import { IProduct } from "@/lib/types";
+import { useEffect } from "react";
 
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [products, setProducts] = useState<IProduct[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>("All");
+  const [selectedStatus, setSelectedStatus] = useState<string>("All");
+  const [loading, setLoading] = useState(true);
 
-  const filteredProducts = mockProducts.filter(
-    (p) =>
-      p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      p.category.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const fetchProducts = async () => {
+    try {
+      const res = await getAllProductsAction();
+      if (res.success) {
+        setProducts(res.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch products:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
+
+  const handleDelete = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this product?")) {
+      try {
+        const res = await deleteProductAction(id);
+        if (res.success) {
+          setProducts(products.filter((p) => p._id !== id));
+        } else {
+          alert(res.message);
+        }
+      } catch (error) {
+        console.error("Delete error:", error);
+      }
+    }
+  };
+
+  const filteredProducts = products.filter((p) => {
+    const matchesSearch = p.name
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchesCategory =
+      selectedCategory === "All" || p.category === selectedCategory;
+    const matchesStatus =
+      selectedStatus === "All" ||
+      (selectedStatus === "Active" ? p.isActive : !p.isActive);
+
+    return matchesSearch && matchesCategory && matchesStatus;
+  });
+
+  const categories = ["All", "Classic", "Premium", "Sport"];
+  const statuses = ["All", "Active", "Draft"];
 
   return (
     <div className="space-y-6">
@@ -34,7 +81,7 @@ export default function ProductsPage() {
         </div>
         <Link
           href="/admin/products/new"
-          className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-xl font-medium transition-colors flex items-center justify-center gap-2"
+          className="bg-red-600 hover:bg-red-700 text-white px-6 py-3 rounded-full font-medium transition-colors flex items-center justify-center gap-2 cursor-pointer"
         >
           <HugeiconsIcon icon={PlusSignIcon} size={20} />
           Add Product
@@ -42,23 +89,60 @@ export default function ProductsPage() {
       </div>
 
       <div className="bg-white dark:bg-neutral-900 rounded-2xl border border-neutral-100 dark:border-neutral-800 shadow-sm overflow-hidden">
-        <div className="p-4 border-b border-neutral-100 dark:border-neutral-800 flex flex-col sm:flex-row gap-4">
-          <div className="relative flex-1">
-            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400">
+        <div className="p-5 border-b border-neutral-100 dark:border-neutral-800 flex flex-col lg:flex-row gap-5">
+          {/* Enhanced Search */}
+          <div className="relative flex-1 group">
+            <div className="absolute left-4 top-1/2 -translate-y-1/2 text-neutral-400 group-focus-within:text-red-500 transition-colors">
               <HugeiconsIcon icon={Search01Icon} size={20} />
             </div>
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="Search by name..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl py-2.5 pl-12 pr-4 text-neutral-900 dark:text-white placeholder-neutral-500 focus:ring-2 focus:ring-red-500/20"
+              className="w-full bg-neutral-50 dark:bg-neutral-800 border-2 border-transparent focus:border-red-500/10 focus:bg-white dark:focus:bg-neutral-900 rounded-2xl py-3 pl-12 pr-12 text-neutral-900 dark:text-white placeholder-neutral-500 transition-all outline-none"
             />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-neutral-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-all cursor-pointer"
+              >
+                <HugeiconsIcon icon={Cancel01Icon} size={16} />
+              </button>
+            )}
           </div>
-          <button className="px-4 py-2.5 bg-neutral-50 dark:bg-neutral-800 rounded-xl text-neutral-600 dark:text-neutral-300 font-medium flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
-            <HugeiconsIcon icon={FilterHorizontalIcon} size={20} />
-            Filter
-          </button>
+
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Category Filter */}
+            <div className="flex bg-neutral-50 dark:bg-neutral-800 p-1 rounded-2xl border border-neutral-100 dark:border-neutral-700">
+              {categories.map((cat) => (
+                <button
+                  key={cat}
+                  onClick={() => setSelectedCategory(cat)}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                    selectedCategory === cat
+                      ? "bg-white dark:bg-neutral-700 text-red-600 shadow-sm"
+                      : "text-neutral-500 hover:text-neutral-700"
+                  }`}
+                >
+                  {cat}
+                </button>
+              ))}
+            </div>
+
+            {/* Status Filter */}
+            <select
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+              className="bg-neutral-50 dark:bg-neutral-800 border border-neutral-100 dark:border-neutral-700 rounded-2xl px-4 py-3 text-xs font-bold text-neutral-600 dark:text-neutral-300 outline-none focus:ring-2 focus:ring-red-500/20 cursor-pointer"
+            >
+              {statuses.map((status) => (
+                <option key={status} value={status}>
+                  Status: {status}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         <div className="overflow-x-auto">
@@ -106,10 +190,10 @@ export default function ProductsPage() {
                   </td>
                   <td className="px-6 py-4">
                     <div className="font-medium text-neutral-900 dark:text-white">
-                      ${product.price}
+                      ৳{product.price}
                       {product.discountPrice && (
                         <span className="text-sm text-neutral-400 line-through ml-2">
-                          ${product.discountPrice}
+                          ৳{product.discountPrice}
                         </span>
                       )}
                     </div>
@@ -130,15 +214,13 @@ export default function ProductsPage() {
                     <div className="flex items-center justify-end gap-2">
                       <Link
                         href={`/admin/products/${product._id}`}
-                        className="p-2 text-neutral-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                        className="p-2 text-neutral-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors cursor-pointer"
                       >
                         <HugeiconsIcon icon={PencilEdit02Icon} size={20} />
                       </Link>
                       <button
-                        className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                        onClick={() =>
-                          alert("Delete functionality would go here")
-                        }
+                        className="p-2 text-neutral-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors cursor-pointer"
+                        onClick={() => handleDelete(product._id)}
                       >
                         <HugeiconsIcon icon={Delete02Icon} size={20} />
                       </button>
@@ -148,9 +230,14 @@ export default function ProductsPage() {
               ))}
             </tbody>
           </table>
+          {loading && (
+            <div className="p-12 text-center text-neutral-500">
+              Loading products...
+            </div>
+          )}
         </div>
 
-        {filteredProducts.length === 0 && (
+        {!loading && filteredProducts.length === 0 && (
           <div className="p-12 text-center text-neutral-500">
             No products found matching your search.
           </div>

@@ -1,45 +1,69 @@
 "use client";
 
-import { mockOrders, mockProducts } from "@/lib/mockData";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DollarCircleIcon,
   ShoppingBag03Icon,
   DeliveryBox01Icon,
 } from "@hugeicons/core-free-icons";
-import { motion } from "motion/react";
+import { getAllProductsAction, getAllOrdersAction } from "@/lib/actions";
+import { IOrder, IProduct } from "@/lib/types";
+import { useEffect, useState } from "react";
+import Link from "next/link";
 import Image from "next/image";
-
-const stats = [
-  {
-    name: "Total Revenue",
-    value: `$${mockOrders
-      .reduce((acc, order) => acc + order.totalPrice, 0)
-      .toFixed(2)}`,
-    icon: DollarCircleIcon,
-    color: "from-green-500 to-emerald-600",
-    change: "+12.5%",
-    trend: "up",
-  },
-  {
-    name: "Total Orders",
-    value: mockOrders.length.toString(),
-    icon: DeliveryBox01Icon,
-    color: "from-blue-500 to-indigo-600",
-    change: "+5.2%",
-    trend: "up",
-  },
-  {
-    name: "Active Products",
-    value: mockProducts.length.toString(),
-    icon: ShoppingBag03Icon,
-    color: "from-orange-500 to-red-600",
-    change: "0%",
-    trend: "neutral",
-  },
-];
+import { motion } from "motion/react";
 
 export default function AdminDashboard() {
+  const [products, setProducts] = useState<IProduct[]>([]);
+  const [orders, setOrders] = useState<IOrder[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [prodRes, orderRes] = await Promise.all([
+          getAllProductsAction(),
+          getAllOrdersAction(),
+        ]);
+        if (prodRes.success) setProducts(prodRes.data);
+        if (orderRes.success) setOrders(orderRes.data);
+      } catch (error) {
+        console.error("Dashboard fetch error:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchData();
+  }, []);
+
+  const totalRevenue = orders.reduce((acc, order) => acc + order.totalPrice, 0);
+
+  const stats = [
+    {
+      name: "Total Revenue",
+      value: `$${totalRevenue.toFixed(2)}`,
+      icon: DollarCircleIcon,
+      color: "from-green-500 to-emerald-600",
+      change: "+12.5%",
+      trend: "up",
+    },
+    {
+      name: "Total Orders",
+      value: orders.length.toString(),
+      icon: DeliveryBox01Icon,
+      color: "from-blue-500 to-indigo-600",
+      change: "+5.2%",
+      trend: "up",
+    },
+    {
+      name: "Active Products",
+      value: products.length.toString(),
+      icon: ShoppingBag03Icon,
+      color: "from-orange-500 to-red-600",
+      change: "0%",
+      trend: "neutral",
+    },
+  ];
   return (
     <div className="space-y-8">
       <div>
@@ -97,12 +121,15 @@ export default function AdminDashboard() {
             <h3 className="text-lg font-bold text-neutral-900 dark:text-white">
               Recent Orders
             </h3>
-            <button className="text-sm text-red-600 hover:text-red-500 font-medium">
+            <Link
+              href="/admin/orders"
+              className="text-sm text-red-600 hover:text-red-500 font-medium cursor-pointer"
+            >
               View All
-            </button>
+            </Link>
           </div>
           <div className="space-y-4">
-            {mockOrders.slice(0, 5).map((order) => (
+            {orders.slice(0, 5).map((order) => (
               <div
                 key={order._id}
                 className="flex items-center justify-between p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800/50"
@@ -133,6 +160,12 @@ export default function AdminDashboard() {
                 </span>
               </div>
             ))}
+            {!loading && orders.length === 0 && (
+              <p className="text-center text-neutral-500 py-4">No orders yet</p>
+            )}
+            {loading && (
+              <p className="text-center text-neutral-500 py-4">Loading...</p>
+            )}
           </div>
         </motion.div>
 
@@ -146,12 +179,15 @@ export default function AdminDashboard() {
             <h3 className="text-lg font-bold text-neutral-900 dark:text-white">
               Top Products
             </h3>
-            <button className="text-sm text-red-600 hover:text-red-500 font-medium">
+            <Link
+              href="/admin/products"
+              className="text-sm text-red-600 hover:text-red-500 font-medium cursor-pointer"
+            >
               View All
-            </button>
+            </Link>
           </div>
           <div className="space-y-4">
-            {mockProducts.slice(0, 5).map((product) => (
+            {products.slice(0, 5).map((product) => (
               <div
                 key={product._id}
                 className="flex items-center justify-between p-4 rounded-xl bg-neutral-50 dark:bg-neutral-800/50"
@@ -183,6 +219,14 @@ export default function AdminDashboard() {
                 </div>
               </div>
             ))}
+            {!loading && products.length === 0 && (
+              <p className="text-center text-neutral-500 py-4">
+                No products yet
+              </p>
+            )}
+            {loading && (
+              <p className="text-center text-neutral-500 py-4">Loading...</p>
+            )}
           </div>
         </motion.div>
       </div>

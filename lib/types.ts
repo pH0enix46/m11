@@ -11,6 +11,7 @@ export interface IProduct {
   sizes: string[];
   badge?: string;
   isActive: boolean;
+  quantity: number;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -26,18 +27,18 @@ export interface IOrderItem {
 
 export interface IOrder {
   _id: string;
-  user: string; // User ID
+  user: string | { _id: string; name: string; email: string };
   orderNumber: string;
   items: IOrderItem[];
   shippingAddress: {
-    firstName: string;
-    lastName: string;
-    email: string;
-    address: string;
+    street: string;
     city: string;
+    state: string;
+    zipCode: string;
+    country: string;
     phone: string;
   };
-  paymentMethod: "cash" | "card" | "paypal" | "stripe";
+  paymentMethod: "cash" | "card" | "paypal" | "stripe" | "bkash" | "nagad";
   paymentStatus: "pending" | "paid" | "failed";
   itemsPrice: number;
   shippingPrice: number;

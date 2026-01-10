@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { mockOrders } from "@/lib/mockData";
 import { HugeiconsIcon } from "@hugeicons/react";
+import { getAllOrdersAction } from "@/lib/actions";
+import { IOrder } from "@/lib/types";
+import { useEffect } from "react";
 import {
   Search01Icon,
   FilterHorizontalIcon,
@@ -12,11 +14,31 @@ import {
 
 export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [orders, setOrders] = useState<IOrder[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredOrders = mockOrders.filter(
+  const fetchOrders = async () => {
+    try {
+      const res = await getAllOrdersAction();
+      if (res.success) {
+        setOrders(res.data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch orders:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchOrders();
+  }, []);
+
+  const filteredOrders = orders.filter(
     (o) =>
       o.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      o.shippingAddress.email.toLowerCase().includes(searchTerm.toLowerCase())
+      (typeof o.user === "object" &&
+        o.user.email.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   const getStatusColor = (status: string) => {
@@ -59,7 +81,7 @@ export default function OrdersPage() {
               className="w-full bg-neutral-50 dark:bg-neutral-800 border-none rounded-xl py-2.5 pl-12 pr-4 text-neutral-900 dark:text-white placeholder-neutral-500 focus:ring-2 focus:ring-red-500/20"
             />
           </div>
-          <button className="px-4 py-2.5 bg-neutral-50 dark:bg-neutral-800 rounded-xl text-neutral-600 dark:text-neutral-300 font-medium flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors">
+          <button className="px-4 py-2.5 bg-neutral-50 dark:bg-neutral-800 rounded-full text-neutral-600 dark:text-neutral-300 font-medium flex items-center gap-2 hover:bg-neutral-100 dark:hover:bg-neutral-700 transition-colors cursor-pointer">
             <HugeiconsIcon icon={FilterHorizontalIcon} size={20} />
             Filter
           </button>
@@ -95,11 +117,14 @@ export default function OrdersPage() {
                   <td className="px-6 py-4">
                     <div className="text-sm">
                       <p className="font-medium text-neutral-900 dark:text-white">
-                        {order.shippingAddress.firstName}{" "}
-                        {order.shippingAddress.lastName}
+                        {typeof order.user === "object"
+                          ? order.user.name
+                          : `UID: ${order.user}`}
                       </p>
                       <p className="text-neutral-500">
-                        {order.shippingAddress.email}
+                        {typeof order.user === "object"
+                          ? order.user.email
+                          : order.shippingAddress.phone}
                       </p>
                     </div>
                   </td>
@@ -129,7 +154,7 @@ export default function OrdersPage() {
                   <td className="px-6 py-4 text-right">
                     <Link
                       href={`/admin/orders/${order._id}`}
-                      className="inline-flex p-2 text-neutral-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors"
+                      className="inline-flex p-2 text-neutral-500 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-full transition-colors cursor-pointer"
                     >
                       <HugeiconsIcon icon={EyeIcon} size={20} />
                     </Link>
@@ -138,7 +163,17 @@ export default function OrdersPage() {
               ))}
             </tbody>
           </table>
+          {loading && (
+            <div className="p-12 text-center text-neutral-500">
+              Loading orders...
+            </div>
+          )}
         </div>
+        {!loading && filteredOrders.length === 0 && (
+          <div className="p-12 text-center text-neutral-500">
+            No orders found matching your search.
+          </div>
+        )}
       </div>
     </div>
   );

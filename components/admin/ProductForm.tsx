@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { IProduct } from "@/lib/types";
@@ -12,8 +12,10 @@ import {
   Money03Icon,
   Tick02Icon,
   ArrowLeft02Icon,
+  Delete02Icon,
 } from "@hugeicons/core-free-icons";
 import Link from "next/link";
+import { createProductAction, updateProductAction } from "@/lib/actions";
 
 interface ProductFormProps {
   initialData?: IProduct;
@@ -25,6 +27,8 @@ export default function ProductForm({
   isNew = false,
 }: ProductFormProps) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [activeImageIndex, setActiveImageIndex] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState<Partial<IProduct>>(
     initialData || {
@@ -38,19 +42,40 @@ export default function ProductForm({
       features: [],
       sizes: [],
       isActive: true,
+      quantity: 0,
       badge: "",
     }
   );
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simulate API call
-    setTimeout(() => {
-      alert("Product saved successfully (Mock)");
+
+    try {
+      let res;
+      if (isNew) {
+        res = await createProductAction(formData);
+      } else {
+        res = await updateProductAction(initialData!._id, formData);
+      }
+
+      if (res.success) {
+        alert(
+          isNew
+            ? "Product created successfully"
+            : "Product updated successfully"
+        );
+        router.push("/admin/products");
+        router.refresh();
+      } else {
+        alert(res.message || "Failed to save product");
+      }
+    } catch (error) {
+      console.error("Save product error:", error);
+      alert("An error occurred while saving the product");
+    } finally {
       setLoading(false);
-      router.push("/admin/products");
-    }, 1000);
+    }
   };
 
   const handleImageChange = (index: number, value: string) => {
@@ -59,16 +84,38 @@ export default function ProductForm({
     setFormData({ ...formData, images: newImages });
   };
 
+  const removeImageField = (index: number) => {
+    const newImages = [...(formData.images || [])];
+    newImages.splice(index, 1);
+    setFormData({ ...formData, images: newImages });
+  };
+
   const addImageField = () => {
     setFormData({ ...formData, images: [...(formData.images || []), ""] });
   };
 
+  const triggerFileSelect = (index: number) => {
+    setActiveImageIndex(index);
+    fileInputRef.current?.click();
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && activeImageIndex !== null) {
+      // By default image goes to products folder
+      const path = `/products/${file.name}`;
+      handleImageChange(activeImageIndex, path);
+      // Reset input
+      e.target.value = "";
+    }
+  };
+
   return (
-    <div className="max-w-4xl mx-auto">
+    <div className="max-w-8xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
         <Link
           href="/admin/products"
-          className="p-2 rounded-xl hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors"
+          className="p-2 rounded-full hover:bg-neutral-100 dark:hover:bg-neutral-800 transition-colors cursor-pointer"
         >
           <HugeiconsIcon
             icon={ArrowLeft02Icon}
@@ -87,6 +134,14 @@ export default function ProductForm({
           </p>
         </div>
       </div>
+
+      <input
+        type="file"
+        ref={fileInputRef}
+        onChange={handleFileChange}
+        className="hidden"
+        accept="image/*"
+      />
 
       <form onSubmit={handleSubmit} className="space-y-8">
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -145,7 +200,7 @@ export default function ProductForm({
                       onChange={(e) =>
                         setFormData({
                           ...formData,
-                          category: e.target.value as any,
+                          category: e.target.value as IProduct["category"],
                         })
                       }
                       className="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all appearance-none"
@@ -186,7 +241,7 @@ export default function ProductForm({
                 <button
                   type="button"
                   onClick={addImageField}
-                  className="text-sm font-medium text-red-600 hover:text-red-700"
+                  className="text-sm font-medium text-red-600 hover:text-red-700 cursor-pointer"
                 >
                   + Add URL
                 </button>
@@ -195,13 +250,17 @@ export default function ProductForm({
               <div className="space-y-4">
                 {formData.images?.map((url, index) => (
                   <div key={index} className="flex gap-4">
-                    <div className="w-16 h-16 rounded-lg bg-neutral-100 dark:bg-neutral-800 flex-shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-700 relative">
+                    <button
+                      type="button"
+                      onClick={() => triggerFileSelect(index)}
+                      className="w-16 h-16 rounded-lg bg-neutral-100 dark:bg-neutral-800 shrink-0 overflow-hidden border border-neutral-200 dark:border-neutral-700 relative hover:ring-2 hover:ring-red-500/20 transition-all cursor-pointer group/img"
+                    >
                       {url ? (
                         <Image
                           src={url}
                           alt="Preview"
                           fill
-                          className="object-cover"
+                          className="object-cover group-hover/img:scale-110 transition-transform"
                           sizes="64px"
                         />
                       ) : (
@@ -209,14 +268,27 @@ export default function ProductForm({
                           <HugeiconsIcon icon={ImageAdd02Icon} size={24} />
                         </div>
                       )}
+                    </button>
+                    <div className="flex-1 flex gap-2">
+                      <input
+                        type="text"
+                        value={url}
+                        onChange={(e) =>
+                          handleImageChange(index, e.target.value)
+                        }
+                        className="flex-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+                        placeholder="/products/category/image.jpg or https://..."
+                      />
+                      {formData.images && formData.images.length > 1 && (
+                        <button
+                          type="button"
+                          onClick={() => removeImageField(index)}
+                          className="p-3 text-neutral-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-xl transition-all cursor-pointer"
+                        >
+                          <HugeiconsIcon icon={Delete02Icon} size={20} />
+                        </button>
+                      )}
                     </div>
-                    <input
-                      type="text"
-                      value={url}
-                      onChange={(e) => handleImageChange(index, e.target.value)}
-                      className="flex-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
-                      placeholder="https://..."
-                    />
                   </div>
                 ))}
               </div>
@@ -307,7 +379,7 @@ export default function ProductForm({
                     onClick={() =>
                       setFormData({ ...formData, isActive: !formData.isActive })
                     }
-                    className={`w-12 h-6 rounded-full transition-colors relative ${
+                    className={`w-12 h-6 rounded-full transition-colors relative cursor-pointer ${
                       formData.isActive
                         ? "bg-green-500"
                         : "bg-neutral-300 dark:bg-neutral-700"
@@ -319,6 +391,26 @@ export default function ProductForm({
                       }`}
                     />
                   </button>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-neutral-700 dark:text-neutral-300">
+                    Stock Quantity
+                  </label>
+                  <input
+                    type="number"
+                    required
+                    min="0"
+                    value={formData.quantity}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        quantity: parseInt(e.target.value),
+                      })
+                    }
+                    className="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all"
+                    placeholder="e.g. 20"
+                  />
                 </div>
 
                 <div className="space-y-2">
@@ -344,7 +436,7 @@ export default function ProductForm({
             <button
               type="submit"
               disabled={loading}
-              className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-xl shadow-lg shadow-red-600/20 hover:shadow-red-600/30 transition-all flex items-center justify-center gap-2"
+              className="w-full bg-red-600 hover:bg-red-700 text-white font-bold py-4 rounded-full shadow-lg shadow-red-600/20 hover:shadow-red-600/30 transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               {loading ? (
                 <span>Saving...</span>
