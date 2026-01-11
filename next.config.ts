@@ -3,19 +3,24 @@ import type { NextConfig } from "next";
 const nextConfig: NextConfig = {
   devIndicators: false,
 
-  /* config options here */
   images: {
     remotePatterns: [
       {
         protocol: "https",
         hostname: "images.unsplash.com",
       },
+      {
+        protocol: "https",
+        hostname: "pkvsfnyfnuqvuwgiqcxs.supabase.co",
+        pathname: "/storage/v1/object/public/**",
+      },
     ],
-    // Speed up dev render by avoiding heavy optimization during dev
+
+    // Keep this – dev faster, prod optimized
     unoptimized: process.env.NODE_ENV === "development",
   },
+
   experimental: {
-    // Helps Turbopack resolve imports faster
     optimizePackageImports: [
       "@hugeicons/react",
       "@hugeicons/core-free-icons",
