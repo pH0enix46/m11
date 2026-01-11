@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import { useCart } from "@/context/CartContext";
+import { useAuth } from "@/context/AuthContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   ArrowLeft01Icon,
@@ -18,6 +19,7 @@ import { placeOrderAction } from "@/lib/actions";
 
 const CheckoutPage = () => {
   const { cartItems, totalPrice, clearCart } = useCart();
+  const { user } = useAuth();
   const router = useRouter();
   const [isOrdered, setIsOrdered] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -27,17 +29,39 @@ const CheckoutPage = () => {
     email: "",
     firstName: "",
     lastName: "",
+    house: "",
     street: "",
     city: "",
-    state: "",
-    zipCode: "",
-    country: "",
+    country: "Bangladesh",
     phone: "",
   });
+
+  // Auto-fill user data when component mounts
+  useEffect(() => {
+    if (user) {
+      setFormData((prev) => ({
+        ...prev,
+        firstName: user.name?.split(" ")[0] || "",
+        phone: user.phone || "",
+        email: user.email || "",
+      }));
+    }
+  }, [user]);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value.replace(/\D/g, ""); // Remove non-digits
+    setFormData((prev) => ({ ...prev, phone: value }));
+  };
+
+  const validatePhone = (phone: string) => {
+    // Bangladesh phone number validation (11 digits, starts with 01)
+    const phoneRegex = /^01[3-9]\d{8}$/;
+    return phoneRegex.test(phone);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -45,9 +69,39 @@ const CheckoutPage = () => {
     setLoading(true);
     setError("");
 
+    // Validate phone number
+    if (!validatePhone(formData.phone)) {
+      setError(
+        "Please enter a valid Bangladesh phone number (e.g., 01712345678)"
+      );
+      setLoading(false);
+      return;
+    }
+
+    // Validate required fields
+    if (
+      !formData.phone ||
+      !formData.firstName ||
+      !formData.lastName ||
+      !formData.house ||
+      !formData.street ||
+      !formData.city
+    ) {
+      setError("Please fill in all required fields");
+      setLoading(false);
+      return;
+    }
+
     try {
       const data = await placeOrderAction({
-        shippingAddress: formData,
+        shippingAddress: {
+          street: `${formData.house}, ${formData.street}`,
+          city: formData.city,
+          state: formData.city, // Use city as state
+          zipCode: "0000", // Default zipcode
+          country: formData.country,
+          phone: formData.phone,
+        },
         paymentMethod: "cash",
       });
 
@@ -168,21 +222,27 @@ const CheckoutPage = () => {
                   </h2>
                 </div>
                 <div className="space-y-4">
+                  <div>
+                    <input
+                      required
+                      type="tel"
+                      name="phone"
+                      placeholder="Phone Number *"
+                      value={formData.phone}
+                      onChange={handlePhoneChange}
+                      maxLength={11}
+                      pattern="01[3-9][0-9]{8}"
+                      className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
+                    />
+                    <p className="text-xs text-gray-500 mt-2 ml-2">
+                      Format: 01XXXXXXXXX (11 digits)
+                    </p>
+                  </div>
                   <input
-                    required
                     type="email"
                     name="email"
-                    placeholder="Email Address"
+                    placeholder="Email Address (Optional)"
                     value={formData.email}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
-                  />
-                  <input
-                    required
-                    type="tel"
-                    name="phone"
-                    placeholder="Phone Number"
-                    value={formData.phone}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
                   />
@@ -204,7 +264,7 @@ const CheckoutPage = () => {
                     required
                     type="text"
                     name="firstName"
-                    placeholder="First Name"
+                    placeholder="First Name *"
                     value={formData.firstName}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
@@ -213,7 +273,7 @@ const CheckoutPage = () => {
                     required
                     type="text"
                     name="lastName"
-                    placeholder="Last Name"
+                    placeholder="Last Name *"
                     value={formData.lastName}
                     onChange={handleInputChange}
                     className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
@@ -222,52 +282,37 @@ const CheckoutPage = () => {
                 <input
                   required
                   type="text"
+                  name="house"
+                  placeholder="House / Holding Number *"
+                  value={formData.house}
+                  onChange={handleInputChange}
+                  className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
+                />
+                <input
+                  required
+                  type="text"
                   name="street"
-                  placeholder="Street Address"
+                  placeholder="Street Address *"
                   value={formData.street}
                   onChange={handleInputChange}
                   className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
                 />
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    required
-                    type="text"
-                    name="city"
-                    placeholder="City"
-                    value={formData.city}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
-                  />
-                  <input
-                    required
-                    type="text"
-                    name="state"
-                    placeholder="State / Province"
-                    value={formData.state}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    required
-                    type="text"
-                    name="zipCode"
-                    placeholder="Postal / Zip Code"
-                    value={formData.zipCode}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
-                  />
-                  <input
-                    required
-                    type="text"
-                    name="country"
-                    placeholder="Country"
-                    value={formData.country}
-                    onChange={handleInputChange}
-                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
-                  />
-                </div>
+                <input
+                  required
+                  type="text"
+                  name="city"
+                  placeholder="City *"
+                  value={formData.city}
+                  onChange={handleInputChange}
+                  className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
+                />
+                <input
+                  type="text"
+                  name="country"
+                  value={formData.country}
+                  readOnly
+                  className="w-full px-6 py-4 bg-gray-100 border-2 border-gray-100 rounded-2xl outline-none font-medium text-gray-600 cursor-not-allowed"
+                />
               </section>
 
               {/* Payment Info */}
@@ -281,7 +326,7 @@ const CheckoutPage = () => {
                   </h2>
                 </div>
                 <div className="grid grid-cols-1 gap-4">
-                  <div className="p-6 border-2 border-black rounded-2xl bg-white flex items-center justify-between cursor-pointer">
+                  <div className="p-6 border-2 border-black rounded-2xl bg-white flex items-center justify-between">
                     <div className="flex items-center gap-4">
                       <HugeiconsIcon
                         icon={CreditCardIcon}
@@ -292,15 +337,19 @@ const CheckoutPage = () => {
                         Cash on Delivery
                       </span>
                     </div>
-                    <div className="w-6 h-6 rounded-full border-4 border-black bg-white" />
+                    <div className="w-6 h-6 rounded-full border-4 border-black bg-black flex items-center justify-center">
+                      <div className="w-2 h-2 rounded-full bg-white" />
+                    </div>
                   </div>
                 </div>
               </section>
 
               {error && (
-                <p className="text-red-600 text-sm font-black uppercase tracking-widest text-center">
-                  {error}
-                </p>
+                <div className="p-4 bg-red-50 border-2 border-red-200 rounded-2xl">
+                  <p className="text-red-600 text-sm font-bold text-center">
+                    {error}
+                  </p>
+                </div>
               )}
 
               <button
@@ -320,13 +369,13 @@ const CheckoutPage = () => {
                 Order Summary
               </h2>
 
-              <div className="space-y-6 max-h-[400px] overflow-y-auto! pr-2 scroll-smooth!">
+              <div className="space-y-6 max-h-[400px] overflow-y-auto pr-2 scroll-smooth">
                 {cartItems.map((item) => (
                   <div
                     key={`${item._id || item.id}-${item.selectedSize}`}
                     className="flex gap-4"
                   >
-                    <div className="relative w-24 h-24 rounded-2xl overflow-y-auto overflow-x-hidden scroll-smooth! bg-white border border-gray-200 shrink-0">
+                    <div className="relative w-24 h-24 rounded-2xl overflow-hidden bg-white border border-gray-200 shrink-0">
                       <Image
                         src={item.images[0]}
                         alt={item.name}
