@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import { IProduct } from "@/lib/types";
@@ -50,7 +50,10 @@ export default function ProductForm({
       badge: "",
     }
   );
-  const [images, setImages] = useState<string[]>([]);
+
+  useEffect(() => {
+    console.log("Form Data Updated:", formData);
+  }, [formData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -148,17 +151,14 @@ export default function ProductForm({
           data: { publicUrl },
         } = supabase.storage.from("m11_products").getPublicUrl(data.path);
 
-        // console.log("After Fetch: ", publicUrl);
-
-        setImages([...images, publicUrl]);
-        console.log("After Set: ", images);
+        console.log("After Fetch: ", publicUrl);
 
         setFormData({
           ...formData,
           images: [...(formData.images || []), publicUrl],
         });
 
-        // console.log("After Set: ", publicUrl);
+        console.log("After Set: ", publicUrl);
         console.log(formData);
 
         // Update form data (actual URL for DB)
