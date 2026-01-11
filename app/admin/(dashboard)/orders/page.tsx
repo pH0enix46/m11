@@ -1,113 +1,16 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { getAllOrdersAction } from "@/lib/actions";
 import { IOrder } from "@/lib/types";
-import { useEffect } from "react";
 import {
   Search01Icon,
   EyeIcon,
   Cancel01Icon,
 } from "@hugeicons/core-free-icons";
 import { toast } from "react-hot-toast";
-
-const dummyOrders: IOrder[] = [
-  {
-    _id: "dummy-1",
-    orderNumber: "ORD-7721",
-    user: { _id: "u1", name: "Ahmed Faraz", email: "ahmed@example.com" },
-    items: [
-      {
-        product: "p1",
-        name: "Ryder Blackout Leather",
-        selectedSize: "XL",
-        quantity: 1,
-        price: 12500,
-        image: "/products/classic/1.jpg",
-      },
-    ],
-    shippingAddress: {
-      street: "Gulshan 2",
-      city: "Dhaka",
-      state: "Dhaka",
-      zipCode: "1212",
-      country: "Bangladesh",
-      phone: "01712345678",
-    },
-    paymentMethod: "bkash",
-    paymentStatus: "paid",
-    itemsPrice: 12500,
-    shippingPrice: 100,
-    taxPrice: 0,
-    totalPrice: 12600,
-    orderStatus: "processing",
-    createdAt: new Date().toISOString(),
-  },
-  {
-    _id: "dummy-2",
-    orderNumber: "ORD-9932",
-    user: { _id: "u2", name: "Sara Islam", email: "sara.i@example.com" },
-    items: [
-      {
-        product: "p2",
-        name: "Apex Sport Fusion",
-        selectedSize: "M",
-        quantity: 1,
-        price: 8500,
-        image: "/products/sport/2.jpg",
-      },
-    ],
-    shippingAddress: {
-      street: "Banani 11",
-      city: "Dhaka",
-      state: "Dhaka",
-      zipCode: "1213",
-      country: "Bangladesh",
-      phone: "01887654321",
-    },
-    paymentMethod: "cash",
-    paymentStatus: "pending",
-    itemsPrice: 8500,
-    shippingPrice: 100,
-    taxPrice: 0,
-    totalPrice: 8600,
-    orderStatus: "pending",
-    createdAt: new Date(Date.now() - 86400000).toISOString(),
-  },
-  {
-    _id: "dummy-3",
-    orderNumber: "ORD-4410",
-    user: { _id: "u3", name: "Tanvir Hasan", email: "tanvir.h@example.com" },
-    items: [
-      {
-        product: "p3",
-        name: "Premium Onyx Edition",
-        selectedSize: "L",
-        quantity: 2,
-        price: 15000,
-        image: "/products/premium/3.jpg",
-      },
-    ],
-    shippingAddress: {
-      street: "Nasirabad",
-      city: "Chittagong",
-      state: "Chittagong",
-      zipCode: "4000",
-      country: "Bangladesh",
-      phone: "01991122334",
-    },
-    paymentMethod: "nagad",
-    paymentStatus: "paid",
-    itemsPrice: 30000,
-    shippingPrice: 150,
-    taxPrice: 0,
-    totalPrice: 30150,
-    orderStatus: "delivered",
-    createdAt: new Date(Date.now() - 172800000).toISOString(),
-  },
-];
 
 export default function OrdersPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -116,20 +19,26 @@ export default function OrdersPage() {
   const [loading, setLoading] = useState(true);
 
   const fetchOrders = async () => {
+    setLoading(true);
     try {
-      const res = await getAllOrdersAction();
+      // Build query string based on filters
+      const queryParams = new URLSearchParams();
+      if (selectedStatus !== "All") {
+        queryParams.append("status", selectedStatus);
+      }
+
+      const res = await getAllOrdersAction(queryParams.toString());
+
       if (res.success) {
-        // Show real orders plus dummy ones for testing
-        setOrders([...dummyOrders, ...res.data]);
+        setOrders(res.data);
       } else {
-        setOrders(dummyOrders); // Fallback to dummy data for testing if fetch fails
-        toast.error(
-          res.message || "Failed to fetch orders, showing dummy data"
-        );
+        toast.error(res.message || "Failed to fetch orders");
+        setOrders([]);
       }
     } catch (error) {
       console.error("Failed to fetch orders:", error);
       toast.error("An error occurred while fetching orders");
+      setOrders([]);
     } finally {
       setLoading(false);
     }
@@ -137,18 +46,17 @@ export default function OrdersPage() {
 
   useEffect(() => {
     fetchOrders();
-  }, []);
+  }, [selectedStatus]);
 
   const filteredOrders = orders.filter((o) => {
     const matchesSearch =
       o.orderNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (typeof o.user === "object" &&
-        o.user.email.toLowerCase().includes(searchTerm.toLowerCase()));
+        o.user.email?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (typeof o.user === "object" &&
+        o.user.name?.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const matchesStatus =
-      selectedStatus === "All" || o.orderStatus === selectedStatus;
-
-    return matchesSearch && matchesStatus;
+    return matchesSearch;
   });
 
   const statuses = [

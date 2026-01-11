@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useRef, useEffect } from "react";
@@ -41,7 +42,7 @@ export default function ProductForm({
       description: "",
       price: 0,
       discountPrice: 0,
-      category: "Classic",
+      category: "Grand",
       images: [""],
       features: [],
       sizes: [],
@@ -277,9 +278,8 @@ export default function ProductForm({
                       }
                       className="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 outline-none focus:ring-2 focus:ring-red-500/20 focus:border-red-500 transition-all appearance-none"
                     >
-                      <option value="Classic">Classic</option>
-                      <option value="Premium">Premium</option>
-                      <option value="Sport">Sport</option>
+                      <option value="Classic">Grand Series</option>
+                      <option value="Premium">Simple Series</option>
                     </select>
                   </div>
                   <div className="space-y-2">

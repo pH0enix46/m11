@@ -89,7 +89,7 @@ export default function ProductsPage() {
     return matchesSearch && matchesCategory && matchesStatus;
   });
 
-  const categories = ["All", "Classic", "Premium", "Sport"];
+  const categories = ["All", "Grand Series", "Simple Series"];
   const statuses = ["All", "Active", "Draft"];
 
   return (

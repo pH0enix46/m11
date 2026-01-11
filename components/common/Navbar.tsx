@@ -180,7 +180,7 @@ const Navbar = () => {
                         </span>
                       </Link>
                       <Link
-                        href="/account/orders"
+                        href="/orders"
                         onClick={() => setIsAccountOpen(false)}
                         className="flex items-center gap-3 p-3 rounded-2xl hover:bg-gray-50 transition-colors group"
                       >

@@ -5,7 +5,7 @@ export interface IProduct {
   description: string;
   price: number;
   discountPrice?: number;
-  category: "Classic" | "Premium" | "Sport";
+  category: "Grand" | "Simple";
   images: string[];
   features: string[];
   sizes: string[];

@@ -63,7 +63,7 @@ const ProductsPage = () => {
     return () => clearTimeout(timer);
   }, [searchQuery, selectedCategory, sortBy]);
 
-  const categories = ["All", "Classic", "Premium", "Sport"];
+  const categories = ["All", "Grand Series", "Simple Series"];
 
   const filteredProducts = products;
 
