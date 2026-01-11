@@ -223,19 +223,24 @@ const AuthPage = () => {
 
             {/* Login Phone/Email Input */}
             {isLogin && (
-              <div className="relative group">
-                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-black/30 group-focus-within:text-[#E60000] transition-colors z-10">
-                  <HugeiconsIcon icon={Mail01Icon} size={20} />
+              <div className="space-y-2">
+                <div className="relative group">
+                  <div className="absolute left-5 top-1/2 -translate-y-1/2 text-black/30 group-focus-within:text-[#E60000] transition-colors z-10">
+                    <HugeiconsIcon icon={Mail01Icon} size={20} />
+                  </div>
+                  <input
+                    type="text"
+                    name="identifier"
+                    placeholder="PHONE NUMBER OR EMAIL"
+                    required
+                    value={formData.identifier}
+                    onChange={handleInputChange}
+                    className={inputStyle}
+                  />
                 </div>
-                <input
-                  type="text"
-                  name="identifier"
-                  placeholder="PHONE NUMBER OR EMAIL"
-                  required
-                  value={formData.identifier}
-                  onChange={handleInputChange}
-                  className={inputStyle}
-                />
+                <p className="text-xs text-gray-500 mt-2 ml-2">
+                  Format: 01XXXXXXXXX (11 digits)
+                </p>
               </div>
             )}
 
