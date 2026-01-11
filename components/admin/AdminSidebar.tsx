@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   DashboardSquare01Icon,
@@ -20,6 +21,7 @@ const menuItems = [
 
 export default function AdminSidebar() {
   const pathname = usePathname();
+  const { logout } = useAuth();
 
   return (
     <aside className="w-64 h-screen bg-neutral-900 text-white fixed left-0 top-0 overflow-y-auto border-r border-neutral-800 hidden md:flex flex-col">
@@ -53,7 +55,7 @@ export default function AdminSidebar() {
 
       <div className="p-4 border-t border-neutral-800">
         <button
-          onClick={() => (window.location.href = "/login")}
+          onClick={() => logout()}
           className="flex w-full items-center gap-3 px-4 py-3 rounded-full text-neutral-400 hover:bg-red-900/20 hover:text-red-500 transition-colors cursor-pointer"
         >
           <HugeiconsIcon icon={Logout03Icon} size={20} />
