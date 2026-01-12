@@ -174,6 +174,7 @@ export default function ProductsPage() {
                 <th className="px-6 py-4">Product</th>
                 <th className="px-6 py-4">Category</th>
                 <th className="px-6 py-4">Price</th>
+                <th className="px-6 py-4">Discount Price</th>
                 <th className="px-6 py-4">Stock Status</th>
                 <th className="px-6 py-4 text-right">Actions</th>
               </tr>
@@ -193,6 +194,9 @@ export default function ProductsPage() {
                       </td>
                       <td className="px-6 py-4">
                         <div className="h-6 bg-neutral-100 dark:bg-neutral-800 rounded-full w-20" />
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="h-4 bg-neutral-100 dark:bg-neutral-800 rounded w-16" />
                       </td>
                       <td className="px-6 py-4">
                         <div className="h-4 bg-neutral-100 dark:bg-neutral-800 rounded w-16" />
@@ -241,12 +245,16 @@ export default function ProductsPage() {
                       <td className="px-6 py-4">
                         <div className="font-medium text-neutral-900 dark:text-white">
                           ৳{product.price}
-                          {product.discountPrice && (
-                            <span className="text-sm text-neutral-400 line-through ml-2">
-                              ৳{product.discountPrice}
-                            </span>
-                          )}
                         </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        {product.discountPrice ? (
+                          <div className="font-medium text-green-600 dark:text-green-400">
+                            ৳{product.discountPrice}
+                          </div>
+                        ) : (
+                          <span className="text-sm text-neutral-400">—</span>
+                        )}
                       </td>
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-2">
