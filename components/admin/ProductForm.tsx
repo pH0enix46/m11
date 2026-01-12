@@ -498,6 +498,7 @@ export default function ProductForm({
                   </label>
                   <input
                     type="text"
+                    required
                     value={formData.sizes?.join(", ")}
                     onChange={(e) =>
                       setFormData({

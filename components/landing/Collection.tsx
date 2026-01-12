@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import React, { useRef } from "react";
 import { motion, useScroll, useTransform, useSpring } from "motion/react";
 import Image from "next/image";
@@ -99,9 +100,12 @@ const CollectionCard = ({
           whileInView={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.4 + index * 0.1, duration: 0.6 }}
         >
-          <button className="bg-red-600 px-10 py-3 text-white text-[11px] font-extrabold uppercase tracking-[0.2em] rounded-full shadow-lg transition-all duration-300 hover:bg-red-500 hover:scale-105 active:scale-95 cursor-pointer">
+          <Link
+            href="/products"
+            className="bg-red-600 px-10 py-3 text-white text-[11px] font-extrabold uppercase tracking-[0.2em] rounded-full shadow-lg transition-all duration-300 hover:bg-red-500 hover:scale-105 active:scale-95 cursor-pointer inline-block"
+          >
             Shop Now
-          </button>
+          </Link>
         </motion.div>
       </div>
 

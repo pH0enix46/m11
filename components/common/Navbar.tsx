@@ -74,8 +74,8 @@ const Navbar = () => {
         className={`w-full transition-all duration-500 ${
           scrolled
             ? "bg-white/80 backdrop-blur-xl py-4 shadow-sm"
-            : "bg-slate-50 py-6 md:py-8"
-        } border-b border-black/5 px-6 md:px-12 flex items-center justify-between relative text-black`}
+            : "bg-slate-50 py-4 md:py-8"
+        } border-b border-black/5 px-4 md:px-12 flex items-center justify-between relative text-black`}
       >
         {/* Left Side: Desktop Links & Mobile Menu Trigger */}
         <div className="flex-1 flex items-center">
@@ -109,7 +109,7 @@ const Navbar = () => {
             className={`relative transition-all duration-500 ${
               scrolled
                 ? "w-10 h-10 md:w-12 md:h-12"
-                : "w-12 h-12 md:w-16 md:h-16"
+                : "w-10 h-10 md:w-16 md:h-16"
             }`}
           >
             <Image
@@ -249,17 +249,20 @@ const Navbar = () => {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-black/60 backdrop-blur-md z-60 md:hidden"
+            className="fixed inset-0 bg-black/60 backdrop-blur-md z-100 md:hidden"
+            onClick={() => setIsOpen(false)}
           >
             <motion.div
               initial={{ x: "-100%" }}
               animate={{ x: 0 }}
               exit={{ x: "-100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="absolute top-0 left-0 w-[85%] h-full bg-white p-8 flex flex-col shadow-2xl"
+              className="absolute top-0 left-0 w-[85%] max-w-sm h-full bg-white p-6 flex flex-col shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
             >
-              <div className="flex items-center justify-between mb-16">
-                <div className="relative w-12 h-12">
+              {/* Header */}
+              <div className="flex items-center justify-between mb-12">
+                <div className="relative w-10 h-10">
                   <Image
                     src="/brand-circle.png"
                     alt="Logo"
@@ -275,7 +278,8 @@ const Navbar = () => {
                 </button>
               </div>
 
-              <div className="flex flex-col gap-8">
+              {/* Nav Links */}
+              <div className="flex flex-col gap-6">
                 {navLinks.map((link, i) => (
                   <motion.div
                     key={link.name}
@@ -286,7 +290,7 @@ const Navbar = () => {
                     <Link
                       href={link.href}
                       onClick={() => setIsOpen(false)}
-                      className="text-2xl font-black tracking-tighter text-black uppercase hover:text-red-600 transition-colors"
+                      className="text-xl font-black tracking-tighter text-black uppercase hover:text-red-600 transition-colors block"
                     >
                       {link.name}
                     </Link>
@@ -294,36 +298,74 @@ const Navbar = () => {
                 ))}
               </div>
 
-              <div className="mt-auto pt-16 border-t border-black/5 flex flex-col gap-6">
-                <button
-                  onClick={() => {
-                    setIsOpen(false);
-                    if (user) {
-                      setIsAccountOpen(true);
-                    } else {
-                      window.location.href = "/login";
-                    }
-                  }}
-                  className="flex items-center gap-3 text-sm font-bold uppercase tracking-widest text-black"
-                >
-                  <HugeiconsIcon icon={UserCircleIcon} size={18} />
-                  {user ? user.name : "Sign In"}
-                </button>
+              {/* User Section */}
+              <div className="mt-auto pt-8 border-t border-black/5 flex flex-col gap-4">
+                {user ? (
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-10 h-10 rounded-full bg-red-100 flex items-center justify-center text-red-600 font-bold">
+                        {user.name.charAt(0)}
+                      </div>
+                      <div>
+                        <p className="text-xs text-black/50 font-bold uppercase tracking-wider">
+                          Signed in as
+                        </p>
+                        <p className="text-sm font-black text-black">
+                          {user.name}
+                        </p>
+                      </div>
+                    </div>
 
-                {user && (
-                  <button
-                    onClick={() => {
-                      logout();
-                      setIsOpen(false);
-                    }}
-                    className="flex items-center gap-3 text-sm font-bold uppercase tracking-widest text-red-600"
+                    <div className="space-y-1">
+                      <Link
+                        href="/account"
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors text-black/70 hover:text-black font-medium"
+                      >
+                        <HugeiconsIcon icon={UserCircleIcon} size={18} />
+                        Profile
+                      </Link>
+                      <Link
+                        href="/orders"
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors text-black/70 hover:text-black font-medium"
+                      >
+                        <HugeiconsIcon icon={ShoppingBag02Icon} size={18} />
+                        Orders
+                      </Link>
+                      <Link
+                        href="/account/settings"
+                        onClick={() => setIsOpen(false)}
+                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors text-black/70 hover:text-black font-medium"
+                      >
+                        <HugeiconsIcon icon={Settings02Icon} size={18} />
+                        Settings
+                      </Link>
+                    </div>
+
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsOpen(false);
+                      }}
+                      className="w-full flex items-center gap-3 p-3 rounded-xl hover:bg-red-50 text-red-600 transition-colors font-bold mt-2"
+                    >
+                      <HugeiconsIcon icon={Logout01Icon} size={18} />
+                      Log Out
+                    </button>
+                  </div>
+                ) : (
+                  <Link
+                    href="/login"
+                    onClick={() => setIsOpen(false)}
+                    className="flex items-center justify-center gap-2 bg-black text-white p-4 rounded-xl font-bold uppercase tracking-widest hover:bg-neutral-800 transition-colors"
                   >
-                    <HugeiconsIcon icon={Logout01Icon} size={18} />
-                    Logout
-                  </button>
+                    <HugeiconsIcon icon={UserCircleIcon} size={20} />
+                    Sign In / Register
+                  </Link>
                 )}
 
-                <p className="text-[10px] font-bold text-black/30 tracking-widest uppercase">
+                <p className="text-[10px] font-bold text-black/30 tracking-widest uppercase text-center mt-4">
                   © M-11 FOOTWEAR {new Date().getFullYear()}
                 </p>
               </div>

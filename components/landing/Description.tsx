@@ -4,6 +4,8 @@ import React from "react";
 import { motion } from "motion/react";
 import Image from "next/image";
 
+import Link from "next/link";
+
 const Description = () => {
   return (
     <section className="bg-white py-24 px-6 md:px-12 lg:px-24 overflow-hidden">
@@ -82,9 +84,12 @@ const Description = () => {
               viewport={{ once: true }}
               transition={{ delay: 0.4, duration: 0.6 }}
             >
-              <button className="bg-red-600 px-12 py-4 text-white text-sm font-bold uppercase tracking-widest hover:bg-red-500 transition-all transform hover:-translate-y-1 active:translate-y-0 cursor-pointer rounded-full duration-300">
+              <Link
+                href="/products"
+                className="bg-red-600 px-12 py-4 text-white text-sm font-bold uppercase tracking-widest hover:bg-red-500 transition-all transform hover:-translate-y-1 active:translate-y-0 cursor-pointer rounded-full duration-300 inline-block"
+              >
                 Read More
-              </button>
+              </Link>
             </motion.div>
           </div>
         </div>
