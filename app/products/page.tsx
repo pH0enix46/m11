@@ -129,11 +129,11 @@ const ProductsPage = () => {
       </section>
 
       {/* Toolbar */}
-      <section className="sticky top-20 z-30 bg-white/90 backdrop-blur-2xl border-b border-gray-100 shadow-sm transition-all duration-300">
-        <div className="max-w-8xl mx-auto px-4 py-6 md:px-10 lg:px-20">
-          <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+      <section className="sticky top-20 z-30 bg-white/95 backdrop-blur-2xl border-b border-gray-100 shadow-sm transition-all duration-300">
+        <div className="max-w-8xl mx-auto px-4 py-4 md:py-6 md:px-10 lg:px-20">
+          <div className="flex flex-col gap-4 md:gap-5">
             {/* Search */}
-            <div className="relative w-full lg:w-1/3 group">
+            <div className="relative w-full group">
               <HugeiconsIcon
                 icon={Search01Icon}
                 className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 transition-colors duration-200"
@@ -145,7 +145,7 @@ const ProductsPage = () => {
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-14 pr-12 py-4 bg-white border border-gray-200 hover:border-gray-300 focus:border-red-600 rounded-full text-sm font-medium text-gray-900 outline-none focus:ring-2 focus:ring-red-600/10 transition-all duration-200 placeholder:text-gray-400"
+                className="w-full pl-14 pr-12 py-3.5 md:py-4 bg-white border border-gray-200 hover:border-gray-300 focus:border-red-600 rounded-full text-sm font-medium text-gray-900 outline-none focus:ring-2 focus:ring-red-600/10 transition-all duration-200 placeholder:text-gray-400"
               />
               {searchQuery && (
                 <button
@@ -158,14 +158,14 @@ const ProductsPage = () => {
             </div>
 
             {/* Filters & Sort */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-end gap-4 w-full lg:w-2/3">
+            <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 md:gap-4 w-full">
               {/* Category Pills */}
-              <div className="flex flex-wrap items-center justify-center gap-2">
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
                 {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wide transition-all duration-200 cursor-pointer ${
+                    className={`px-5 md:px-6 py-2.5 md:py-3 rounded-full text-xs font-bold uppercase tracking-wide transition-all duration-200 cursor-pointer ${
                       selectedCategory === cat
                         ? "bg-black text-white"
                         : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -176,17 +176,19 @@ const ProductsPage = () => {
                 ))}
               </div>
 
-              <div className="hidden sm:block h-8 w-px bg-gray-200" />
-
               {/* Advanced Sort Dropdown */}
-              <div className="relative group min-w-[200px]">
+              <div className="relative group w-full sm:w-auto sm:min-w-[200px]">
                 <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10">
-                  <HugeiconsIcon icon={Sorting05Icon} size={20} />
+                  <HugeiconsIcon
+                    icon={Sorting05Icon}
+                    size={20}
+                    strokeWidth={2.5}
+                  />
                 </div>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full appearance-none bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 pl-14 pr-12 py-4 rounded-full text-sm font-bold uppercase tracking-wide text-gray-900 outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/10 transition-all duration-200 cursor-pointer"
+                  className="w-full appearance-none bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 pl-14 pr-12 py-3.5 md:py-4 rounded-full text-sm font-bold uppercase tracking-wide text-gray-900 outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/10 transition-all duration-200 cursor-pointer"
                 >
                   <option value="default">Featured</option>
                   <option value="newest">Newest</option>
