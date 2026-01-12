@@ -274,7 +274,7 @@ const ProductDetailPage = () => {
                   <div className="absolute inset-0 bg-red-600 translate-y-full group-hover:translate-y-0 transition-transform duration-500" />
                   <span className="relative z-10 flex items-center gap-3">
                     <HugeiconsIcon icon={ShoppingBag01Icon} size={24} />
-                    {selectedSize ? "Secure Checkout" : "Select Your Size"}
+                    {selectedSize ? "Add to cart" : "Select Your Size"}
                   </span>
                 </button>
 

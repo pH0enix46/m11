@@ -26,31 +26,12 @@ const ProductsPage = () => {
       setLoading(true);
       try {
         const result = await getProductsAction({
-          category: selectedCategory,
+          category: selectedCategory === "All" ? undefined : selectedCategory,
           search: searchQuery,
         });
 
         if (result.success && Array.isArray(result.data)) {
-          const sortedProducts = result.data;
-
-          // Client-side sorting as the API sort is simple
-          if (sortBy === "price-low") {
-            sortedProducts.sort(
-              (a: Product, b: Product) =>
-                (a.discountPrice || a.price) - (b.discountPrice || b.price)
-            );
-          } else if (sortBy === "price-high") {
-            sortedProducts.sort(
-              (a: Product, b: Product) =>
-                (b.discountPrice || b.price) - (a.discountPrice || a.price)
-            );
-          } else if (sortBy === "name") {
-            sortedProducts.sort((a: Product, b: Product) =>
-              a.name.localeCompare(b.name)
-            );
-          }
-
-          setProducts(sortedProducts);
+          setProducts(result.data);
         }
       } catch (error) {
         console.error("Failed to fetch products:", error);
@@ -61,11 +42,57 @@ const ProductsPage = () => {
 
     const timer = setTimeout(fetchProducts, 300); // Debounce search
     return () => clearTimeout(timer);
-  }, [searchQuery, selectedCategory, sortBy]);
+  }, [searchQuery, selectedCategory]);
 
   const categories = ["All", "Grand Series", "Simple Series"];
 
-  const filteredProducts = products;
+  // Client-side filtering and sorting
+  const filteredProducts = React.useMemo(() => {
+    let filtered = [...products];
+
+    // Filter by search query (client-side backup)
+    if (searchQuery) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(
+        (product) =>
+          product.name.toLowerCase().includes(query) ||
+          product.description?.toLowerCase().includes(query) ||
+          product.category?.toLowerCase().includes(query)
+      );
+    }
+
+    // Filter by category
+    if (selectedCategory !== "All") {
+      filtered = filtered.filter(
+        (product) => product.category === selectedCategory
+      );
+    }
+
+    // Sort products
+    if (sortBy === "price-low") {
+      filtered.sort(
+        (a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price)
+      );
+    } else if (sortBy === "price-high") {
+      filtered.sort(
+        (a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price)
+      );
+    } else if (sortBy === "name") {
+      filtered.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === "newest") {
+      filtered.sort((a, b) => {
+        const dateA = new Date(
+          (a as Product & { createdAt?: string }).createdAt || 0
+        ).getTime();
+        const dateB = new Date(
+          (b as Product & { createdAt?: string }).createdAt || 0
+        ).getTime();
+        return dateB - dateA;
+      });
+    }
+
+    return filtered;
+  }, [products, searchQuery, selectedCategory, sortBy]);
 
   return (
     <div className="min-h-screen bg-white">
@@ -109,20 +136,21 @@ const ProductsPage = () => {
             <div className="relative w-full lg:w-1/3 group">
               <HugeiconsIcon
                 icon={Search01Icon}
-                className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-red-600 transition-colors duration-300"
-                size={18}
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 transition-colors duration-200"
+                strokeWidth={2.5}
+                size={20}
               />
               <input
                 type="text"
-                placeholder="Find your perfect pair..."
+                placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-12 py-4 bg-gray-100 hover:bg-white border-2 border-transparent focus:border-red-600/10 focus:bg-white rounded-2xl text-sm font-medium text-gray-900 shadow-xs transition-all outline-none cursor-text placeholder:text-gray-400"
+                className="w-full pl-14 pr-12 py-4 bg-white border border-gray-200 hover:border-gray-300 focus:border-red-600 rounded-full text-sm font-medium text-gray-900 outline-none focus:ring-2 focus:ring-red-600/10 transition-all duration-200 placeholder:text-gray-400"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full transition-all cursor-pointer"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all cursor-pointer"
                 >
                   <HugeiconsIcon icon={Cancel01Icon} size={16} />
                 </button>
@@ -130,17 +158,17 @@ const ProductsPage = () => {
             </div>
 
             {/* Filters & Sort */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-end gap-5 w-full lg:w-2/3">
+            <div className="flex flex-wrap items-center justify-center lg:justify-end gap-4 w-full lg:w-2/3">
               {/* Category Pills */}
-              <div className="flex flex-wrap items-center justify-center gap-2 p-1.5 bg-gray-50 rounded-2xl border border-gray-100/50">
+              <div className="flex flex-wrap items-center justify-center gap-2">
                 {categories.map((cat) => (
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 cursor-pointer ${
+                    className={`px-6 py-3 rounded-full text-xs font-bold uppercase tracking-wide transition-all duration-200 cursor-pointer ${
                       selectedCategory === cat
-                        ? "bg-black text-white shadow-lg shadow-black/10 scale-105"
-                        : "text-gray-500 hover:text-black hover:bg-white"
+                        ? "bg-black text-white"
+                        : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                     }`}
                   >
                     {cat}
@@ -148,33 +176,34 @@ const ProductsPage = () => {
                 ))}
               </div>
 
-              <div className="hidden sm:block h-10 w-px bg-gray-200 mx-2" />
+              <div className="hidden sm:block h-8 w-px bg-gray-200" />
 
               {/* Advanced Sort Dropdown */}
-              <div className="relative group min-w-[180px]">
-                <div className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-400 group-hover:text-red-600 transition-colors pointer-events-none">
-                  <HugeiconsIcon icon={Sorting05Icon} size={16} />
+              <div className="relative group min-w-[200px]">
+                <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10">
+                  <HugeiconsIcon icon={Sorting05Icon} size={20} />
                 </div>
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full appearance-none bg-gray-50 hover:bg-white border-2 border-transparent hover:border-gray-100 pl-11 pr-10 py-3.5 rounded-2xl text-xs font-black uppercase tracking-widest text-gray-700 outline-none focus:ring-4 focus:ring-red-600/5 transition-all cursor-pointer shadow-xs"
+                  className="w-full appearance-none bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 pl-14 pr-12 py-4 rounded-full text-sm font-bold uppercase tracking-wide text-gray-900 outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/10 transition-all duration-200 cursor-pointer"
                 >
-                  <option value="default">Sort Options</option>
+                  <option value="default">Featured</option>
+                  <option value="newest">Newest</option>
                   <option value="price-low">Price: Low to High</option>
                   <option value="price-high">Price: High to Low</option>
-                  <option value="name">Product: A-Z</option>
+                  <option value="name">Name: A-Z</option>
                 </select>
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-300 pointer-events-none group-hover:text-gray-600 transition-colors">
+                <div className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none">
                   <svg
-                    width="10"
-                    height="6"
-                    viewBox="0 0 10 6"
+                    width="14"
+                    height="8"
+                    viewBox="0 0 14 8"
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
                   >
                     <path
-                      d="M1 1L5 5L9 1"
+                      d="M1 1L7 7L13 1"
                       stroke="currentColor"
                       strokeWidth="2"
                       strokeLinecap="round"
