@@ -76,9 +76,11 @@ export default function UserOrdersPage() {
   ];
 
   const filteredOrders = orders.filter((order) => {
-    const matchesSearch = order.orderNumber
-      .toLowerCase()
-      .includes(searchQuery.toLowerCase());
+    const matchesSearch =
+      order.orderNumber.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      order.items.some((item) =>
+        item.name.toLowerCase().includes(searchQuery.toLowerCase())
+      );
     const matchesStatus =
       selectedStatus === "All" || order.orderStatus === selectedStatus;
     return matchesSearch && matchesStatus;
@@ -159,50 +161,49 @@ export default function UserOrdersPage() {
       </section>
 
       {/* Toolbar */}
-      <section className="sticky top-20 z-30 bg-white/90 backdrop-blur-2xl border-b border-gray-100 shadow-sm transition-all duration-300">
-        <div className="max-w-8xl mx-auto px-4 py-6 md:px-10 lg:px-20">
-          <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+      <section className="sticky top-24 z-30 bg-white/95 backdrop-blur-2xl border-b border-gray-100 shadow-sm transition-all duration-300">
+        <div className="max-w-8xl mx-auto px-4 py-4 md:py-6 md:px-10 lg:px-20">
+          <div className="flex flex-col gap-4 md:gap-5">
             {/* Search */}
-            <div className="relative w-full lg:w-1/3 group">
+            <div className="relative w-full group">
               <HugeiconsIcon
                 icon={Search01Icon}
-                className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-red-600 transition-colors duration-300"
-                size={18}
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 group-focus-within:text-red-600 transition-all duration-200"
+                strokeWidth={2.5}
+                size={20}
               />
               <input
                 type="text"
-                placeholder="Search by order number..."
+                placeholder="Search by order number or item name..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-12 pr-12 py-4 bg-gray-100 hover:bg-white border-2 border-transparent focus:border-red-600/10 focus:bg-white rounded-2xl text-sm font-medium text-gray-900 shadow-xs transition-all outline-none cursor-text placeholder:text-gray-400"
+                className="w-full pl-14 pr-12 py-3.5 md:py-4 bg-white border border-gray-200 hover:border-gray-300 focus:border-red-600 rounded-full text-sm font-medium text-gray-900 outline-none focus:ring-2 focus:ring-red-600/10 transition-all duration-200 placeholder:text-gray-400"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1 text-gray-400 hover:text-black hover:bg-gray-100 rounded-full transition-all cursor-pointer"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all cursor-pointer"
                 >
                   <HugeiconsIcon icon={Cancel01Icon} size={16} />
                 </button>
               )}
             </div>
 
-            {/* Status Filter */}
-            <div className="flex flex-wrap items-center justify-center lg:justify-end gap-2 w-full lg:w-2/3">
-              <div className="flex flex-wrap items-center justify-center gap-2 p-1.5 bg-gray-50 rounded-2xl border border-gray-100/50">
-                {statuses.map((status) => (
-                  <button
-                    key={status}
-                    onClick={() => setSelectedStatus(status)}
-                    className={`px-6 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest transition-all duration-300 cursor-pointer ${
-                      selectedStatus === status
-                        ? "bg-black text-white shadow-lg shadow-black/10 scale-105"
-                        : "text-gray-500 hover:text-black hover:bg-white"
-                    }`}
-                  >
-                    {status}
-                  </button>
-                ))}
-              </div>
+            {/* Filters */}
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+              {statuses.map((status) => (
+                <button
+                  key={status}
+                  onClick={() => setSelectedStatus(status)}
+                  className={`px-5 md:px-6 py-2.5 md:py-3 rounded-full text-[10px] md:text-xs font-bold uppercase tracking-widest transition-all duration-200 cursor-pointer ${
+                    selectedStatus === status
+                      ? "bg-black text-white shadow-lg shadow-black/10 scale-105"
+                      : "bg-white text-gray-500 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  {status}
+                </button>
+              ))}
             </div>
           </div>
         </div>
