@@ -19,6 +19,7 @@ import Image from "next/image";
 import { useCart } from "@/context/CartContext";
 import { useAuth } from "@/context/AuthContext";
 import CartSidebar from "./CartSidebar";
+import SearchOverlay from "./SearchOverlay";
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -27,6 +28,8 @@ const Navbar = () => {
 
   const { user, logout } = useAuth();
   const { totalItems, setIsCartOpen } = useCart();
+
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 20);
@@ -47,6 +50,15 @@ const Navbar = () => {
     window.addEventListener("click", handleClickOutside);
     return () => window.removeEventListener("click", handleClickOutside);
   }, [isAccountOpen]);
+
+  // Disable scroll when search or menu is open
+  useEffect(() => {
+    if (isSearchOpen || isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+  }, [isSearchOpen, isOpen]);
 
   const navLinks = [
     { name: "Collection", href: "/products" },
@@ -125,7 +137,10 @@ const Navbar = () => {
 
         {/* Right Side: Icons */}
         <div className="flex-1 flex items-center justify-end gap-4 md:gap-7">
-          <button className="hover:text-red-600 transition-colors p-1 cursor-pointer">
+          <button
+            onClick={() => setIsSearchOpen(true)}
+            className="hover:text-red-600 transition-colors p-1 cursor-pointer"
+          >
             <HugeiconsIcon icon={Search01Icon} size={20} />
           </button>
 
@@ -242,6 +257,12 @@ const Navbar = () => {
 
       {/* Cart Sidebar */}
       <CartSidebar />
+
+      {/* Search Overlay */}
+      <SearchOverlay
+        isOpen={isSearchOpen}
+        onClose={() => setIsSearchOpen(false)}
+      />
 
       {/* Mobile Menu Overlay */}
       <AnimatePresence>
