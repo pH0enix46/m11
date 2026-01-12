@@ -139,7 +139,7 @@ export default function UserOrdersPage() {
             className="object-cover"
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/20" />
+        <div className="absolute inset-0 bg-linear-to-b from-black/60 to-black/20" />
 
         <div className="relative z-10 text-center space-y-4 px-4">
           <motion.h1
