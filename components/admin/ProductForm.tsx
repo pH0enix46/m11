@@ -424,7 +424,7 @@ export default function ProductForm({
                       type="number"
                       min="0"
                       step="0.01"
-                      value={formData.discountPrice || 0}
+                      value={formData.discountPrice}
                       onChange={(e) =>
                         setFormData({
                           ...formData,
