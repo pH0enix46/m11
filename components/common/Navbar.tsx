@@ -52,6 +52,7 @@ const Navbar = () => {
     { name: "Collection", href: "/products" },
     { name: "Coming Soon", href: "/coming-soon" },
     { name: "About", href: "/about" },
+    { name: "Contact", href: "/contact" },
   ];
 
   return (
