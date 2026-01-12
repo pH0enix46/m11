@@ -278,8 +278,7 @@ const ContactPage = () => {
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.8 }}
-            className="relative aspect-video md:aspect-21/9 rounded-3xl overflow-hidden border border-gray-200"
-            style={{ minHeight: "400px" }}
+            className="relative w-full h-[300px] sm:h-[400px] md:h-[450px] lg:h-[500px] rounded-2xl md:rounded-3xl overflow-hidden border border-gray-200 shadow-sm"
           >
             <Map center={[23.8103, 90.4125]} zoom={13} />
           </motion.div>

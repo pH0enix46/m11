@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import "leaflet/dist/leaflet.css";
 import L from "leaflet";
@@ -26,13 +26,30 @@ const Map: React.FC<MapProps> = ({
   center = [23.8103, 90.4125], // Dhaka, Bangladesh coordinates
   zoom = 13,
 }) => {
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+
+    checkMobile();
+    window.addEventListener("resize", checkMobile);
+
+    return () => window.removeEventListener("resize", checkMobile);
+  }, []);
+
   return (
     <MapContainer
       center={center}
-      zoom={zoom}
+      zoom={isMobile ? 12 : zoom}
       scrollWheelZoom={false}
-      className="w-full h-full rounded-3xl z-0"
-      style={{ minHeight: "400px" }}
+      dragging={!isMobile}
+      touchZoom={true}
+      doubleClickZoom={true}
+      zoomControl={true}
+      className="w-full h-full rounded-2xl md:rounded-3xl z-0"
+      style={{ minHeight: "100%" }}
     >
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
