@@ -17,6 +17,74 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { placeOrderAction } from "@/lib/actions";
 
+const BANGLADESH_DISTRICTS = [
+  "Bagerhat",
+  "Bandarban",
+  "Barguna",
+  "Barisal",
+  "Bhola",
+  "Bogra",
+  "Brahmanbaria",
+  "Chandpur",
+  "Chapainawabganj",
+  "Chittagong",
+  "Chuadanga",
+  "Comilla",
+  "Cox's Bazar",
+  "Dhaka",
+  "Dinajpur",
+  "Faridpur",
+  "Feni",
+  "Gaibandha",
+  "Gazipur",
+  "Gopalganj",
+  "Habiganj",
+  "Jamalpur",
+  "Jashore",
+  "Jessore",
+  "Jhalokati",
+  "Jhenaidah",
+  "Joypurhat",
+  "Khagrachhari",
+  "Khulna",
+  "Kishoreganj",
+  "Kurigram",
+  "Kushtia",
+  "Lakshmipur",
+  "Lalmonirhat",
+  "Madaripur",
+  "Magura",
+  "Manikganj",
+  "Meherpur",
+  "Moulvibazar",
+  "Munshiganj",
+  "Mymensingh",
+  "Naogaon",
+  "Narail",
+  "Narayanganj",
+  "Narsingdi",
+  "Natore",
+  "Netrokona",
+  "Nilphamari",
+  "Noakhali",
+  "Pabna",
+  "Panchagarh",
+  "Patuakhali",
+  "Pirojpur",
+  "Rajbari",
+  "Rajshahi",
+  "Rangamati",
+  "Rangpur",
+  "Satkhira",
+  "Shariatpur",
+  "Sherpur",
+  "Sirajganj",
+  "Sunamganj",
+  "Sylhet",
+  "Tangail",
+  "Thakurgaon",
+];
+
 const CheckoutPage = () => {
   const { cartItems, totalPrice, clearCart } = useCart();
   const { user } = useAuth();
@@ -24,6 +92,7 @@ const CheckoutPage = () => {
   const [isOrdered, setIsOrdered] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [shippingCost, setShippingCost] = useState(0);
 
   const [formData, setFormData] = useState({
     email: "",
@@ -35,6 +104,11 @@ const CheckoutPage = () => {
     country: "Bangladesh",
     phone: "",
   });
+
+  // Calculate shipping cost based on city
+  const calculateShippingCost = (city: string) => {
+    return city === "Dhaka" ? 80 : 120;
+  };
 
   // Auto-fill user data when component mounts
   useEffect(() => {
@@ -53,6 +127,12 @@ const CheckoutPage = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const handleCityChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedCity = e.target.value;
+    setFormData((prev) => ({ ...prev, city: selectedCity }));
+    setShippingCost(calculateShippingCost(selectedCity));
+  };
+
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value.replace(/\D/g, ""); // Remove non-digits
     setFormData((prev) => ({ ...prev, phone: value }));
@@ -63,6 +143,8 @@ const CheckoutPage = () => {
     const phoneRegex = /^01[3-9]\d{8}$/;
     return phoneRegex.test(phone);
   };
+
+  const finalTotal = totalPrice + shippingCost;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,6 +185,7 @@ const CheckoutPage = () => {
           phone: formData.phone,
         },
         paymentMethod: "cash",
+        shippingPrice: shippingCost,
       });
 
       if (data.success) {
@@ -297,15 +380,42 @@ const CheckoutPage = () => {
                   onChange={handleInputChange}
                   className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
                 />
-                <input
-                  required
-                  type="text"
-                  name="city"
-                  placeholder="City *"
-                  value={formData.city}
-                  onChange={handleInputChange}
-                  className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black placeholder:text-gray-400"
-                />
+
+                {/* City Dropdown */}
+                <div className="relative">
+                  <select
+                    required
+                    name="city"
+                    value={formData.city}
+                    onChange={handleCityChange}
+                    className="w-full px-6 py-4 bg-gray-50 border-2 border-gray-100 focus:border-black focus:bg-white rounded-2xl outline-none transition-all font-medium text-black appearance-none cursor-pointer"
+                  >
+                    <option value="" disabled>
+                      Select District *
+                    </option>
+                    {BANGLADESH_DISTRICTS.map((district) => (
+                      <option key={district} value={district}>
+                        {district}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="absolute right-6 top-1/2 -translate-y-1/2 pointer-events-none">
+                    <svg
+                      className="w-4 h-4 text-gray-400"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                  </div>
+                </div>
+
                 <input
                   type="text"
                   name="country"
@@ -357,7 +467,7 @@ const CheckoutPage = () => {
                 disabled={loading}
                 className="w-full h-20 bg-black text-white rounded-[24px] font-black uppercase tracking-[0.2em] text-lg hover:bg-red-600 transition-all shadow-2xl shadow-black/10 active:scale-[0.98] mt-8 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                {loading ? "Processing..." : `Place Order ৳${totalPrice}`}
+                {loading ? "Processing..." : `Place Order ৳${finalTotal}`}
               </button>
             </form>
           </div>
@@ -407,14 +517,28 @@ const CheckoutPage = () => {
                 </div>
                 <div className="flex justify-between text-sm font-bold text-gray-500 uppercase tracking-widest">
                   <span>Shipping</span>
-                  <span className="text-green-600 font-black">Free</span>
+                  {shippingCost === 0 ? (
+                    <span className="text-gray-400 font-black">
+                      Select District
+                    </span>
+                  ) : (
+                    <span
+                      className={`font-black ${
+                        shippingCost === 80
+                          ? "text-green-600"
+                          : "text-orange-600"
+                      }`}
+                    >
+                      ৳{shippingCost}
+                    </span>
+                  )}
                 </div>
                 <div className="flex justify-between items-end pt-4 border-t border-gray-100 mt-2">
                   <span className="text-lg font-black uppercase tracking-tight text-black">
                     Total
                   </span>
                   <span className="text-4xl font-black text-black">
-                    ৳{totalPrice}
+                    ৳{finalTotal}
                   </span>
                 </div>
               </div>
@@ -432,7 +556,9 @@ const CheckoutPage = () => {
                     Estimated delivery
                   </p>
                   <p className="text-sm font-bold text-black">
-                    2-3 Business Days
+                    {formData.city === "Dhaka"
+                      ? "1-2 Business Days"
+                      : "2-3 Business Days"}
                   </p>
                 </div>
               </div>

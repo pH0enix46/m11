@@ -1,7 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { motion, AnimatePresence } from "motion/react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { HugeiconsIcon } from "@hugeicons/react";
@@ -46,11 +45,11 @@ const ProductsPage = () => {
 
   const categories = ["All", "Grand Series", "Simple Series"];
 
-  // Client-side filtering and sorting
-  const filteredProducts = React.useMemo(() => {
+  // Optimized filtering and sorting with useMemo
+  const filteredProducts = useMemo(() => {
     let filtered = [...products];
 
-    // Filter by search query (client-side backup)
+    // Filter by search query
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       filtered = filtered.filter(
@@ -69,30 +68,41 @@ const ProductsPage = () => {
     }
 
     // Sort products
-    if (sortBy === "price-low") {
-      filtered.sort(
-        (a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price)
-      );
-    } else if (sortBy === "price-high") {
-      filtered.sort(
-        (a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price)
-      );
-    } else if (sortBy === "name") {
-      filtered.sort((a, b) => a.name.localeCompare(b.name));
-    } else if (sortBy === "newest") {
-      filtered.sort((a, b) => {
-        const dateA = new Date(
-          (a as Product & { createdAt?: string }).createdAt || 0
-        ).getTime();
-        const dateB = new Date(
-          (b as Product & { createdAt?: string }).createdAt || 0
-        ).getTime();
-        return dateB - dateA;
-      });
+    switch (sortBy) {
+      case "price-low":
+        filtered.sort(
+          (a, b) => (a.discountPrice || a.price) - (b.discountPrice || b.price)
+        );
+        break;
+      case "price-high":
+        filtered.sort(
+          (a, b) => (b.discountPrice || b.price) - (a.discountPrice || a.price)
+        );
+        break;
+      case "name":
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
+        break;
+      case "newest":
+        filtered.sort((a, b) => {
+          const dateA = new Date(
+            (a as Product & { createdAt?: string }).createdAt || 0
+          ).getTime();
+          const dateB = new Date(
+            (b as Product & { createdAt?: string }).createdAt || 0
+          ).getTime();
+          return dateB - dateA;
+        });
+        break;
     }
 
     return filtered;
   }, [products, searchQuery, selectedCategory, sortBy]);
+
+  // Memoized callbacks
+  const handleClearFilters = useCallback(() => {
+    setSearchQuery("");
+    setSelectedCategory("All");
+  }, []);
 
   return (
     <div className="min-h-screen bg-white">
@@ -104,39 +114,31 @@ const ProductsPage = () => {
             alt="Products Hero"
             fill
             className="object-cover"
+            priority
           />
         </div>
-        <div className="absolute inset-0 bg-linear-to-b from-black/60 to-black/20" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 to-black/20" />
 
         <div className="relative z-10 text-center space-y-4 px-4">
-          <motion.h1
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-5xl md:text-7xl font-bold text-white tracking-tight"
-          >
+          <h1 className="text-5xl md:text-7xl font-bold text-white tracking-tight">
             OUR COLLECTION
-          </motion.h1>
-          <motion.p
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="text-white/80 text-lg md:text-xl font-medium max-w-2xl mx-auto"
-          >
+          </h1>
+          <p className="text-white/80 text-lg md:text-xl font-medium max-w-2xl mx-auto">
             Explore our premium selection of handcrafted leather footwear,
             designed for style and comfort.
-          </motion.p>
+          </p>
         </div>
       </section>
 
       {/* Toolbar */}
-      <section className="sticky top-20 z-30 bg-white/95 backdrop-blur-2xl border-b border-gray-100 shadow-sm transition-all duration-300">
+      <section className="sticky top-20 z-30 bg-white/95 backdrop-blur-lg border-b border-gray-100 shadow-sm">
         <div className="max-w-8xl mx-auto px-4 py-4 md:py-6 md:px-10 lg:px-20">
           <div className="flex flex-col gap-4 md:gap-5">
             {/* Search */}
             <div className="relative w-full group">
               <HugeiconsIcon
                 icon={Search01Icon}
-                className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 transition-colors duration-200"
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400"
                 strokeWidth={2.5}
                 size={20}
               />
@@ -145,12 +147,12 @@ const ProductsPage = () => {
                 placeholder="Search products..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-14 pr-12 py-3.5 md:py-4 bg-white border border-gray-200 hover:border-gray-300 focus:border-red-600 rounded-full text-sm font-medium text-gray-900 outline-none focus:ring-2 focus:ring-red-600/10 transition-all duration-200 placeholder:text-gray-400"
+                className="w-full pl-14 pr-12 py-3.5 md:py-4 bg-white border border-gray-200 hover:border-gray-300 focus:border-red-600 rounded-full text-sm font-medium text-gray-900 outline-none focus:ring-2 focus:ring-red-600/10 transition-colors placeholder:text-gray-400"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-all cursor-pointer"
+                  className="absolute right-4 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors cursor-pointer"
                 >
                   <HugeiconsIcon icon={Cancel01Icon} size={16} />
                 </button>
@@ -165,7 +167,7 @@ const ProductsPage = () => {
                   <button
                     key={cat}
                     onClick={() => setSelectedCategory(cat)}
-                    className={`px-5 md:px-6 py-2.5 md:py-3 rounded-full text-xs font-bold uppercase tracking-wide transition-all duration-200 cursor-pointer ${
+                    className={`px-5 md:px-6 py-2.5 md:py-3 rounded-full text-xs font-bold uppercase tracking-wide transition-colors cursor-pointer ${
                       selectedCategory === cat
                         ? "bg-black text-white"
                         : "bg-white text-gray-600 border border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -176,7 +178,7 @@ const ProductsPage = () => {
                 ))}
               </div>
 
-              {/* Advanced Sort Dropdown */}
+              {/* Sort Dropdown */}
               <div className="relative group w-full sm:w-auto sm:min-w-[200px]">
                 <div className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none z-10">
                   <HugeiconsIcon
@@ -188,7 +190,7 @@ const ProductsPage = () => {
                 <select
                   value={sortBy}
                   onChange={(e) => setSortBy(e.target.value)}
-                  className="w-full appearance-none bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 pl-14 pr-12 py-3.5 md:py-4 rounded-full text-sm font-bold uppercase tracking-wide text-gray-900 outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/10 transition-all duration-200 cursor-pointer"
+                  className="w-full appearance-none bg-white hover:bg-gray-50 border border-gray-200 hover:border-gray-300 pl-14 pr-12 py-3.5 md:py-4 rounded-full text-sm font-bold uppercase tracking-wide text-gray-900 outline-none focus:border-red-600 focus:ring-2 focus:ring-red-600/10 transition-colors cursor-pointer"
                 >
                   <option value="default">Featured</option>
                   <option value="newest">Newest</option>
@@ -219,7 +221,7 @@ const ProductsPage = () => {
         </div>
       </section>
 
-      {/* Spacing between Toolbar and Grid */}
+      {/* Spacing */}
       <div className="h-12 bg-white" />
 
       {/* Main Content */}
@@ -236,84 +238,79 @@ const ProductsPage = () => {
           </div>
         ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
-            <AnimatePresence mode="popLayout">
-              {filteredProducts.map((product, index) => (
-                <motion.div
-                  key={product._id || product.id}
-                  layout
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.4, delay: index * 0.05 }}
-                  className="group flex flex-col h-full"
+            {filteredProducts.map((product) => (
+              <div
+                key={product._id || product.id}
+                className="group flex flex-col h-full"
+              >
+                <Link
+                  href={`/products/${product.slug}`}
+                  className="flex flex-col h-full"
                 >
-                  <Link
-                    href={`/products/${product.slug}`}
-                    className="flex flex-col h-full"
-                  >
-                    <div className="relative aspect-4/5 overflow-hidden rounded-3xl bg-gray-100 shadow-sm transition-all duration-500 group-hover:shadow-2xl group-hover:-translate-y-2 shrink-0">
-                      {/* Badge */}
-                      <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-                        {product.badge && (
-                          <span className="bg-[#E2FF3B] text-black text-[10px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-full">
-                            {product.badge}
-                          </span>
-                        )}
-                        {product.discountPrice && (
-                          <span className="bg-red-600 text-white text-[10px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-full">
-                            Sale
-                          </span>
-                        )}
-                      </div>
+                  <div className="relative aspect-4/5 overflow-hidden rounded-3xl bg-gray-100 shadow-sm transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1 shrink-0">
+                    {/* Badge */}
+                    <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
+                      {product.badge && (
+                        <span className="bg-[#E2FF3B] text-black text-[10px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-full">
+                          {product.badge}
+                        </span>
+                      )}
+                      {product?.discountPrice && product.discountPrice > 0 ? (
+                        <span className="bg-red-600 text-white text-[10px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-full">
+                          {product.discountPrice}
+                        </span>
+                      ) : null}
+                    </div>
 
+                    <Image
+                      src={product.images[0]}
+                      alt={product.name}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
+                    />
+                    {product.images[1] && (
                       <Image
-                        src={product.images[0]}
+                        src={product.images[1]}
                         alt={product.name}
                         fill
-                        className="object-cover transition-transform duration-700 group-hover:scale-110"
+                        className="absolute inset-0 object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                        sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       />
-                      {product.images[1] && (
-                        <Image
-                          src={product.images[1]}
-                          alt={product.name}
-                          fill
-                          className="absolute inset-0 object-cover opacity-0 transition-opacity duration-700 group-hover:opacity-100 group-hover:scale-110"
-                        />
-                      )}
+                    )}
 
-                      <div className="absolute inset-0 bg-linear-to-t from-black/40 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
 
-                      <div className="absolute bottom-12 left-6 right-6 flex justify-between items-center translate-y-10 group-hover:translate-y-0 transition-transform duration-500">
-                        <div className="bg-white/90 backdrop-blur-md p-3 rounded-2xl text-black">
-                          <HugeiconsIcon icon={ShoppingBag01Icon} size={24} />
-                        </div>
+                    <div className="absolute bottom-6 left-6 right-6 flex justify-between items-center translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                      <div className="bg-white/90 backdrop-blur-md p-3 rounded-2xl text-black">
+                        <HugeiconsIcon icon={ShoppingBag01Icon} size={24} />
                       </div>
                     </div>
+                  </div>
 
-                    <div className="mt-6 flex flex-col grow space-y-2">
-                      <div className="flex justify-between items-start gap-4">
-                        <h3 className="text-base font-bold text-gray-900 group-hover:text-red-600 transition-colors min-h-[48px] line-clamp-2">
-                          {product.name}
-                        </h3>
-                        <div className="text-right shrink-0">
-                          <p className="text-base font-bold text-gray-900">
-                            ৳{product.discountPrice || product.price}
+                  <div className="mt-6 flex flex-col grow space-y-2">
+                    <div className="flex justify-between items-start gap-4">
+                      <h3 className="text-base font-bold text-gray-900 group-hover:text-red-600 transition-colors min-h-[48px] line-clamp-2">
+                        {product.name}
+                      </h3>
+                      <div className="text-right shrink-0">
+                        <p className="text-base font-bold text-gray-900">
+                          ৳{product.discountPrice || product.price}
+                        </p>
+                        {product.discountPrice && (
+                          <p className="text-xs text-gray-400 line-through">
+                            ৳{product.price}
                           </p>
-                          {product.discountPrice && (
-                            <p className="text-xs text-gray-400 line-through">
-                              ৳{product.price}
-                            </p>
-                          )}
-                        </div>
+                        )}
                       </div>
-                      <p className="text-xs text-gray-500 uppercase tracking-widest font-medium mt-auto">
-                        {product.category}
-                      </p>
                     </div>
-                  </Link>
-                </motion.div>
-              ))}
-            </AnimatePresence>
+                    <p className="text-xs text-gray-500 uppercase tracking-widest font-medium mt-auto">
+                      {product.category}
+                    </p>
+                  </div>
+                </Link>
+              </div>
+            ))}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-32 text-center space-y-4">
@@ -331,11 +328,8 @@ const ProductsPage = () => {
               Try adjusting your filters or search terms.
             </p>
             <button
-              onClick={() => {
-                setSearchQuery("");
-                setSelectedCategory("All");
-              }}
-              className="mt-4 text-red-600 font-bold uppercase tracking-widest text-sm hover:underline"
+              onClick={handleClearFilters}
+              className="mt-4 text-red-600 font-bold uppercase tracking-widest text-sm hover:underline cursor-pointer"
             >
               Clear All Filters
             </button>

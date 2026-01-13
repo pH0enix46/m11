@@ -45,7 +45,7 @@ export default function ProductForm({
       description: "",
       price: 0,
       discountPrice: 0,
-      category: "Grand",
+      category: "Grand Series",
       images: [""],
       features: [],
       sizes: [],
@@ -83,7 +83,7 @@ export default function ProductForm({
           description: "",
           price: 0,
           discountPrice: 0,
-          category: "Grand",
+          category: "Grand Series",
           images: [""],
           features: [],
           sizes: [],
@@ -249,12 +249,13 @@ export default function ProductForm({
                   <label className="text-sm font-medium">Category</label>
                   <select
                     value={formData.category}
-                    onChange={(e) =>
+                    onChange={(e) => {
+                      console.log("selected category", e.target.value);
                       setFormData({
                         ...formData,
                         category: e.target.value as any,
-                      })
-                    }
+                      });
+                    }}
                     className="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 outline-none focus:border-red-500 transition-all"
                   >
                     <option value="Grand Series">Grand Series</option>

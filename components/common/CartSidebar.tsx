@@ -24,6 +24,8 @@ const CartSidebar = () => {
     totalPrice,
   } = useCart();
 
+  console.log("Cart Items ", cartItems);
+
   return (
     <AnimatePresence>
       {isCartOpen && (
