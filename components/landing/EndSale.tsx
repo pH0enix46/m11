@@ -30,14 +30,31 @@ const ProductCard = ({
     >
       <Link href={`/products/${product.slug}`} className="flex flex-col h-full">
         <div className="relative aspect-4/5 overflow-hidden rounded-2xl shadow-lg bg-slate-100">
-          {/* Badges */}
+          {/* Option 2: Angled Cut Category Label */}
+          <div className="absolute top-0 right-0 z-30">
+            <div
+              className={`
+                pl-6 pr-4 py-2 rounded-bl-[2rem] text-[10px] font-black uppercase tracking-widest
+                shadow-xl transition-all duration-500 group-hover:scale-105 origin-top-right
+                ${
+                  product.category === "Grand Series"
+                    ? "bg-[#E2FF3B] text-black italic shadow-[#E2FF3B]/20"
+                    : "bg-white text-gray-900 shadow-black/5"
+                }
+              `}
+            >
+              {product.category}
+            </div>
+          </div>
+
+          {/* Badges (Left Side) */}
           <div className="absolute top-4 left-4 z-20 flex flex-col items-start gap-2">
             {product.badge && (
               <span className="bg-[#E2FF3B] text-black text-[11px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-sm">
                 {product.badge}
               </span>
             )}
-            {product.discountPrice && (
+            {product.discountPrice && product.discountPrice > 0 ? (
               <span className="bg-red-600 text-white text-[11px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-sm">
                 Save{" "}
                 {Math.round(
@@ -46,7 +63,7 @@ const ProductCard = ({
                 )}
                 %
               </span>
-            )}
+            ) : null}
           </div>
 
           {/* Image */}

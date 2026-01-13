@@ -255,11 +255,32 @@ const ProductsPage = () => {
                           {product.badge}
                         </span>
                       )}
-                      {product?.discountPrice && product.discountPrice > 0 ? (
-                        <span className="bg-red-600 text-white text-[10px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-full">
-                          {product.discountPrice}
+                      {product.discountPrice && product.discountPrice > 0 ? (
+                        <span className="bg-red-600 text-white text-[11px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-sm">
+                          Save{" "}
+                          {Math.round(
+                            ((product.price - product.discountPrice) /
+                              product.price) *
+                              100
+                          )}
+                          %
                         </span>
                       ) : null}
+                    </div>
+                    <div className="absolute top-0 right-0 z-20">
+                      <div
+                        className={`
+      pl-6 pr-4 py-2 rounded-bl-[2rem] text-[11px] font-black uppercase tracking-widest
+      shadow-2xl transition-transform group-hover:scale-105 origin-top-right
+      ${
+        product.category === "Grand Series"
+          ? "bg-[#E2FF3B] text-black italic"
+          : "bg-white text-gray-900"
+      }
+    `}
+                      >
+                        {product.category}
+                      </div>
                     </div>
 
                     <Image
@@ -298,15 +319,12 @@ const ProductsPage = () => {
                           ৳{product.discountPrice || product.price}
                         </p>
                         {product.discountPrice && (
-                          <p className="text-xs text-gray-400 line-through">
+                          <p className="text-xs text-red-400 line-through">
                             ৳{product.price}
                           </p>
                         )}
                       </div>
                     </div>
-                    <p className="text-xs text-gray-500 uppercase tracking-widest font-medium mt-auto">
-                      {product.category}
-                    </p>
                   </div>
                 </Link>
               </div>

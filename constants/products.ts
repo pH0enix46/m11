@@ -10,6 +10,6 @@ export interface Product {
   features: string[];
   sizes: string[];
   images: string[];
-  category: "Grand" | "Simple";
+  category: "Grand Series" | "Simple Series";
   badge?: string;
 }
