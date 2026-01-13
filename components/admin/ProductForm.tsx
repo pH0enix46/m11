@@ -69,6 +69,7 @@ export default function ProductForm({
         res = await updateProductAction(initialData!._id, formData);
       }
 
+      console.log(res, "res from submit");
       if (res.success) {
         toast.success(
           isNew
@@ -76,6 +77,20 @@ export default function ProductForm({
             : "Product updated successfully",
           { id: loadingToast }
         );
+        setFormData({
+          name: "",
+          slug: "",
+          description: "",
+          price: 0,
+          discountPrice: 0,
+          category: "Grand",
+          images: [""],
+          features: [],
+          sizes: [],
+          isActive: true,
+          quantity: 0,
+          badge: "",
+        });
         router.push("/admin/products");
         router.refresh();
       } else {
@@ -242,8 +257,8 @@ export default function ProductForm({
                     }
                     className="w-full bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 outline-none focus:border-red-500 transition-all"
                   >
-                    <option value="Grand">Grand Series</option>
-                    <option value="Simple">Simple Series</option>
+                    <option value="Grand Series">Grand Series</option>
+                    <option value="Simple Series">Simple Series</option>
                   </select>
                 </div>
                 <div className="space-y-2">
@@ -407,6 +422,63 @@ export default function ProductForm({
                 </button>
               </div>
               <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-sm font-medium">Sizes</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        sizes: [...(formData.sizes || []), ""],
+                      });
+                    }}
+                    className="text-xs font-medium text-red-600 hover:text-red-700"
+                  >
+                    + Add Size
+                  </button>
+                </div>
+                <div className="space-y-2">
+                  {formData.sizes && formData.sizes.length > 0 ? (
+                    formData.sizes.map((size, index) => (
+                      <div key={index} className="flex gap-2">
+                        <input
+                          type="text"
+                          value={size}
+                          onChange={(e) => {
+                            const newSizes = [...(formData.sizes || [])];
+                            newSizes[index] = e.target.value;
+                            setFormData({ ...formData, sizes: newSizes });
+                          }}
+                          placeholder="e.g. S, M, L, XL"
+                          className="flex-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-2 outline-none focus:border-red-500 text-sm"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const newSizes = [...(formData.sizes || [])];
+                            newSizes.splice(index, 1);
+                            setFormData({ ...formData, sizes: newSizes });
+                          }}
+                          className="p-2 text-neutral-400 hover:text-red-600 rounded-xl transition-all"
+                        >
+                          <HugeiconsIcon icon={Delete02Icon} size={18} />
+                        </button>
+                      </div>
+                    ))
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData({ ...formData, sizes: [""] });
+                      }}
+                      className="w-full py-3 border-2 border-dashed border-neutral-200 dark:border-neutral-700 rounded-xl text-sm text-neutral-400 hover:text-red-600 hover:border-red-300 transition-all"
+                    >
+                      Click to add first size
+                    </button>
+                  )}
+                </div>
+              </div>
+              <div className="space-y-2">
                 <label className="text-sm font-medium">Stock</label>
                 <input
                   type="number"
@@ -518,6 +590,20 @@ export default function ProductForm({
                     {formData.category || "Category"}
                   </p>
                 </div>
+                {formData.sizes && formData.sizes.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mt-2">
+                    {formData.sizes
+                      .filter((size) => size.trim() !== "")
+                      .map((size, index) => (
+                        <span
+                          key={index}
+                          className="px-2 py-1 bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-300 text-[10px] font-medium rounded-md border border-neutral-200 dark:border-neutral-700"
+                        >
+                          {size}
+                        </span>
+                      ))}
+                  </div>
+                )}
               </div>
             </motion.div>
           </div>
