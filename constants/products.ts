@@ -13,4 +13,5 @@ export interface Product {
   category: "Grand Series" | "Simple Series";
   badge?: string;
   stock?: number;
+  sizeStock?: { size: string; stock: number }[];
 }

@@ -519,7 +519,7 @@ export default function ProductForm({
                             updateSizeStock(index, "stock", e.target.value)
                           }
                           placeholder="Stock"
-                          className="flex-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 outline-none focus:border-red-500 text-sm"
+                          className="flex-1 max-w-20 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-3 py-2 outline-none focus:border-red-500 text-sm"
                         />
                         <button
                           type="button"
