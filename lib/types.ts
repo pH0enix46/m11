@@ -14,6 +14,7 @@ export interface IProduct {
   quantity: number;
   createdAt?: string;
   updatedAt?: string;
+  sizeStock?: { size: string; stock: number }[];
 }
 
 export interface IOrderItem {

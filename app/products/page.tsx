@@ -30,6 +30,7 @@ const ProductsPage = () => {
         });
 
         if (result.success && Array.isArray(result.data)) {
+          console.log("ALL PRODUCTS --> ", result.data);
           setProducts(result.data);
         }
       } catch (error) {
@@ -238,87 +239,131 @@ const ProductsPage = () => {
           </div>
         ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-x-8 gap-y-16">
-            {filteredProducts.map((product) => (
-              <div
-                key={product._id || product.id}
-                className="group flex flex-col h-full"
-              >
-                <Link
-                  href={`/products/${product.slug}`}
-                  className="flex flex-col h-full"
-                >
+            {filteredProducts.map((product) => {
+              const isOutOfStock = product.stock === 0;
+
+              // Content shared between Link and Div to keep code DRY
+              const ProductCardInner = (
+                <>
                   <div className="relative aspect-4/5 overflow-hidden rounded-3xl bg-gray-100 shadow-sm transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1 shrink-0">
-                    {/* Badge */}
+                    {/* 1. HOVER "STOCK OUT" OVERLAY (Centered) */}
+                    {isOutOfStock && (
+                      <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px]">
+                        <span className="bg-white text-black px-6 py-3 rounded-full text-xs font-black uppercase tracking-[0.2em] shadow-2xl">
+                          Stock Out
+                        </span>
+                      </div>
+                    )}
+
+                    {/* Badges Section */}
                     <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-                      {product.badge && (
-                        <span className="bg-[#E2FF3B] text-black text-[10px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-full">
-                          {product.badge}
+                      {isOutOfStock ? (
+                        <span className="bg-black text-white text-[10px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-full ring-2 ring-white/20">
+                          Stock Out
                         </span>
-                      )}
-                      {product.discountPrice && product.discountPrice > 0 ? (
-                        <span className="bg-red-600 text-white text-[11px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-sm">
-                          Save{" "}
-                          {Math.round(
-                            ((product.price - product.discountPrice) /
-                              product.price) *
-                              100
+                      ) : (
+                        <>
+                          {product.badge && (
+                            <span className="bg-[#E2FF3B] text-black text-[10px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-full">
+                              {product.badge}
+                            </span>
                           )}
-                          %
-                        </span>
-                      ) : null}
+                          {product.discountPrice &&
+                          product.discountPrice > 0 ? (
+                            <span className="bg-red-600 text-white text-[11px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-sm">
+                              Save{" "}
+                              {Math.round(
+                                ((product.price - product.discountPrice) /
+                                  product.price) *
+                                  100
+                              )}
+                              %
+                            </span>
+                          ) : null}
+                        </>
+                      )}
                     </div>
+
+                    {/* Category Badge */}
                     <div className="absolute top-0 right-0 z-20">
                       <div
                         className={`
-      pl-6 pr-4 py-2 rounded-bl-[2rem] text-[11px] font-black uppercase tracking-widest
-      shadow-2xl transition-transform group-hover:scale-105 origin-top-right
-      ${
-        product.category === "Grand Series"
-          ? "bg-[#E2FF3B] text-black italic"
-          : "bg-white text-gray-900"
-      }
-    `}
+                  pl-6 pr-4 py-2 rounded-bl-[2rem] text-[11px] font-black uppercase tracking-widest
+                  shadow-2xl transition-transform group-hover:scale-105 origin-top-right
+                  ${
+                    isOutOfStock
+                      ? "bg-gray-300 text-gray-600"
+                      : product.category === "Grand Series"
+                      ? "bg-[#E2FF3B] text-black italic"
+                      : "bg-white text-gray-900"
+                  }
+                `}
                       >
                         {product.category}
                       </div>
                     </div>
 
+                    {/* 2. BLACK AND WHITE IMAGE LOGIC */}
                     <Image
                       src={product.images[0]}
                       alt={product.name}
                       fill
-                      className="object-cover transition-transform duration-500 group-hover:scale-105"
+                      className={`object-cover transition-all duration-500 ${
+                        isOutOfStock
+                          ? "group-hover:grayscale contrast-125 brightness-90"
+                          : "group-hover:scale-105"
+                      }`}
                       sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                     />
+
                     {product.images[1] && (
                       <Image
                         src={product.images[1]}
                         alt={product.name}
                         fill
-                        className="absolute inset-0 object-cover opacity-0 transition-opacity duration-500 group-hover:opacity-100"
+                        className={`absolute inset-0 object-cover opacity-0 transition-opacity duration-500 ${
+                          isOutOfStock
+                            ? "grayscale contrast-125"
+                            : "group-hover:opacity-100"
+                        }`}
                         sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 25vw"
                       />
                     )}
 
-                    <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-
-                    <div className="absolute bottom-6 left-6 right-6 flex justify-between items-center translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
-                      <div className="bg-white/90 backdrop-blur-md p-3 rounded-2xl text-black">
-                        <HugeiconsIcon icon={ShoppingBag01Icon} size={24} />
-                      </div>
-                    </div>
+                    {/* Hide cart icon if out of stock */}
+                    {!isOutOfStock && (
+                      <>
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                        <div className="absolute bottom-6 left-6 right-6 flex justify-between items-center translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all duration-300">
+                          <div className="bg-white/90 backdrop-blur-md p-3 rounded-2xl text-black">
+                            <HugeiconsIcon icon={ShoppingBag01Icon} size={24} />
+                          </div>
+                        </div>
+                      </>
+                    )}
                   </div>
 
+                  {/* Product Text Details */}
                   <div className="mt-6 flex flex-col grow space-y-2">
                     <div className="flex justify-between items-start gap-4">
-                      <h3 className="text-base font-bold text-gray-900 group-hover:text-red-600 transition-colors min-h-[48px] line-clamp-2">
+                      <h3
+                        className={`text-base font-bold transition-colors min-h-[48px] line-clamp-2 ${
+                          isOutOfStock
+                            ? "text-gray-400"
+                            : "text-gray-900 group-hover:text-red-600"
+                        }`}
+                      >
                         {product.name}
                       </h3>
                       <div className="text-right shrink-0">
-                        <p className="text-base font-bold text-gray-900">
+                        <p
+                          className={`text-base font-bold ${
+                            isOutOfStock ? "text-gray-400" : "text-gray-900"
+                          }`}
+                        >
                           ৳{product.discountPrice || product.price}
                         </p>
-                        {product.discountPrice && (
+                        {product.discountPrice && !isOutOfStock && (
                           <p className="text-xs text-red-400 line-through">
                             ৳{product.price}
                           </p>
@@ -326,9 +371,28 @@ const ProductsPage = () => {
                       </div>
                     </div>
                   </div>
-                </Link>
-              </div>
-            ))}
+                </>
+              );
+
+              return (
+                <div key={product._id || product.id} className="h-full">
+                  {isOutOfStock ? (
+                    // 3. NON-CLICKABLE DIV WRAPPER
+                    <div className="group flex flex-col h-full cursor-not-allowed">
+                      {ProductCardInner}
+                    </div>
+                  ) : (
+                    // 4. CLICKABLE LINK WRAPPER
+                    <Link
+                      href={`/products/${product.slug}`}
+                      className="group flex flex-col h-full"
+                    >
+                      {ProductCardInner}
+                    </Link>
+                  )}
+                </div>
+              );
+            })}
           </div>
         ) : (
           <div className="flex flex-col items-center justify-center py-32 text-center space-y-4">

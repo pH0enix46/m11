@@ -12,4 +12,5 @@ export interface Product {
   images: string[];
   category: "Grand Series" | "Simple Series";
   badge?: string;
+  stock?: number;
 }
