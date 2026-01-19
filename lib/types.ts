@@ -15,6 +15,7 @@ export interface IProduct {
   createdAt?: string;
   updatedAt?: string;
   sizeStock?: { size: string; stock: number }[];
+  tags?: string[];
 }
 
 export interface IOrderItem {

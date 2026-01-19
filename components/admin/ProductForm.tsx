@@ -42,6 +42,7 @@ export default function ProductForm({
   const [previews, setPreviews] = useState<string[]>(initialData?.images || []);
   const [uploading, setUploading] = useState<number | null>(null);
   const [loading, setLoading] = useState(false);
+  const [tagInput, setTagInput] = useState("");
 
   // ✅ NEW: Size-based stock state
   const [sizeStock, setSizeStock] = useState<SizeStock[]>(
@@ -59,6 +60,7 @@ export default function ProductForm({
       images: [""],
       features: [],
       sizeStock: [],
+      tags: [], // Add this
       isActive: true,
       badge: "",
     }
@@ -80,6 +82,27 @@ export default function ProductForm({
     (sum, item) => sum + (item.stock || 0),
     0
   );
+
+  const addTag = (e: React.KeyboardEvent | React.MouseEvent) => {
+    if ("key" in e && e.key !== "Enter") return;
+    e.preventDefault();
+
+    const tag = tagInput.trim();
+    if (tag && !formData.tags?.includes(tag)) {
+      setFormData({
+        ...formData,
+        tags: [...(formData.tags || []), tag],
+      });
+      setTagInput("");
+    }
+  };
+
+  const removeTag = (indexToRemove: number) => {
+    setFormData({
+      ...formData,
+      tags: formData.tags?.filter((_, index) => index !== indexToRemove),
+    });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -337,6 +360,47 @@ export default function ProductForm({
                     placeholder="e.g. Best Seller"
                   />
                 </div>
+
+                {/* Inside Basic Info div */}
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">Product Tags</label>
+                  <div className="flex gap-2">
+                    <input
+                      type="text"
+                      value={tagInput}
+                      onChange={(e) => setTagInput(e.target.value)}
+                      onKeyDown={addTag}
+                      className="flex-1 bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-xl px-4 py-3 outline-none focus:border-red-500 transition-all"
+                      placeholder="Type a tag and press Enter"
+                    />
+                    <button
+                      type="button"
+                      onClick={addTag}
+                      className="px-8 py-2 bg-neutral-100 dark:bg-neutral-800 rounded-xl hover:bg-neutral-200 dark:hover:bg-neutral-700 transition-colors cursor-pointer"
+                    >
+                      +
+                    </button>
+                  </div>
+
+                  {/* Tag Pills */}
+                  <div className="flex flex-wrap gap-2 mt-2">
+                    {formData.tags?.map((tag, index) => (
+                      <span
+                        key={index}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-red-50 dark:bg-red-950/30 text-red-600 dark:text-red-400 text-xs font-bold rounded-full border border-red-100 dark:border-red-900/50"
+                      >
+                        {tag}
+                        <button
+                          type="button"
+                          onClick={() => removeTag(index)}
+                          className="hover:text-red-800 dark:hover:text-red-200 transition-colors"
+                        >
+                          <HugeiconsIcon icon={Delete02Icon} size={14} />
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -354,7 +418,7 @@ export default function ProductForm({
               <button
                 type="button"
                 onClick={addImageField}
-                className="text-sm font-medium text-red-600 hover:text-red-700"
+                className="text-sm font-medium text-red-600 hover:text-red-700 cursor-pointer"
               >
                 + Add URL
               </button>
@@ -493,7 +557,7 @@ export default function ProductForm({
                   <button
                     type="button"
                     onClick={addSizeStock}
-                    className="text-xs font-medium text-red-600 hover:text-red-700"
+                    className="text-xs font-medium text-red-600 hover:text-red-700 cursor-pointer"
                   >
                     + Add Size
                   </button>

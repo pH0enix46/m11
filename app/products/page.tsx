@@ -246,7 +246,7 @@ const ProductsPage = () => {
               const ProductCardInner = (
                 <>
                   <div className="relative aspect-4/5 overflow-hidden rounded-3xl bg-gray-100 shadow-sm transition-all duration-300 group-hover:shadow-xl group-hover:-translate-y-1 shrink-0">
-                    {/* 1. HOVER "STOCK OUT" OVERLAY (Centered) */}
+                    {/* 1. HOVER CENTERED OVERLAY (Tags OR Stock Out) */}
                     {isOutOfStock && (
                       <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px]">
                         <span className="bg-white text-black px-6 py-3 rounded-full text-xs font-black uppercase tracking-[0.2em] shadow-2xl">
@@ -255,13 +255,25 @@ const ProductsPage = () => {
                       </div>
                     )}
 
-                    {/* Badges Section */}
+                    {/* 2. TOP-LEFT BADGE SECTION */}
                     <div className="absolute top-4 left-4 z-20 flex flex-col gap-2">
-                      {isOutOfStock ? (
+                      {product.tags && product.tags.length > 0 ? (
+                        /* Show Tags if they exist (Priority 1) */
+                        product.tags.map((tag, i) => (
+                          <span
+                            key={i}
+                            className="bg-black text-white text-[10px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-full ring-2 ring-white/10"
+                          >
+                            {tag}
+                          </span>
+                        ))
+                      ) : isOutOfStock ? (
+                        /* Show Stock Out if no tags and out of stock (Priority 2) */
                         <span className="bg-black text-white text-[10px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-full ring-2 ring-white/20">
                           Stock Out
                         </span>
                       ) : (
+                        /* Show normal badges only if no tags and NOT out of stock */
                         <>
                           {product.badge && (
                             <span className="bg-[#E2FF3B] text-black text-[10px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-full">
@@ -269,17 +281,17 @@ const ProductsPage = () => {
                             </span>
                           )}
                           {product.discountPrice &&
-                          product.discountPrice > 0 ? (
-                            <span className="bg-red-600 text-white text-[11px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-sm">
-                              Save{" "}
-                              {Math.round(
-                                ((product.price - product.discountPrice) /
-                                  product.price) *
-                                  100
-                              )}
-                              %
-                            </span>
-                          ) : null}
+                            product.discountPrice > 0 && (
+                              <span className="bg-red-600 text-white text-[11px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-sm">
+                                Save{" "}
+                                {Math.round(
+                                  ((product.price - product.discountPrice) /
+                                    product.price) *
+                                    100
+                                )}
+                                %
+                              </span>
+                            )}
                         </>
                       )}
                     </div>
@@ -288,22 +300,22 @@ const ProductsPage = () => {
                     <div className="absolute top-0 right-0 z-20">
                       <div
                         className={`
-                  pl-6 pr-4 py-2 rounded-bl-[2rem] text-[11px] font-black uppercase tracking-widest
-                  shadow-2xl transition-transform group-hover:scale-105 origin-top-right
-                  ${
-                    isOutOfStock
-                      ? "bg-gray-300 text-gray-600"
-                      : product.category === "Grand Series"
-                      ? "bg-[#E2FF3B] text-black italic"
-                      : "bg-white text-gray-900"
-                  }
-                `}
+            pl-6 pr-4 py-2 rounded-bl-[2rem] text-[11px] font-black uppercase tracking-widest
+            shadow-2xl transition-transform group-hover:scale-105 origin-top-right
+            ${
+              isOutOfStock
+                ? "bg-gray-300 text-gray-600"
+                : product.category === "Grand Series"
+                ? "bg-[#E2FF3B] text-black italic"
+                : "bg-white text-gray-900"
+            }
+          `}
                       >
                         {product.category}
                       </div>
                     </div>
 
-                    {/* 2. BLACK AND WHITE IMAGE LOGIC */}
+                    {/* Image Logic */}
                     <Image
                       src={product.images[0]}
                       alt={product.name}
@@ -330,7 +342,6 @@ const ProductsPage = () => {
                       />
                     )}
 
-                    {/* Hide cart icon if out of stock */}
                     {!isOutOfStock && (
                       <>
                         <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

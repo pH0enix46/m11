@@ -14,4 +14,5 @@ export interface Product {
   badge?: string;
   stock?: number;
   sizeStock?: { size: string; stock: number }[];
+  tags?: string[];
 }

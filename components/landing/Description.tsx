@@ -71,11 +71,13 @@ const Description = () => {
               transition={{ delay: 0.2, duration: 0.6 }}
               className="text-black/70 text-lg md:text-xl font-medium max-w-xl leading-relaxed"
             >
-              Rooted in Scandinavian minimalism, M-11 redefines everyday
-              footwear through a lens of timeless design and refined
-              craftsmanship. Each pair is thoughtfully constructed from premium
-              materials and engineered for seasonal versatility — balancing
-              understated luxury with functional performance.
+              Each pair is handcrafted from the finest full-grain leather,
+              guided by precision, restraint, and lasting comfort. The
+              intentionally minimal design lets premium materials and
+              craftsmanship define the silhouette. Made for effortless everyday
+              wear and offered in a curated range of designs and exclusive
+              colorways, these sneakers reflect timeless luxury meant to be
+              lived in.
             </motion.p>
 
             <motion.div

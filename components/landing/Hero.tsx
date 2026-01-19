@@ -103,8 +103,8 @@ const Hero = () => {
           transition={{ delay: 0.5, duration: 0.8, ease: "easeOut" }}
           className="mt-6 text-lg font-medium text-white/90 md:text-xl max-w-2xl"
         >
-          Discover our latest collection with premium quality and unparalleled
-          style. Limited time offer up to 50% off.
+          Explore the latest collection, made for comfort, quality, and everyday
+          elegance
         </motion.p>
 
         <motion.button
