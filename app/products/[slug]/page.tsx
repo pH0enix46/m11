@@ -231,32 +231,34 @@ const ProductDetailPage = () => {
               </div>
 
               <div className="grid grid-cols-4 sm:grid-cols-5 gap-3">
-                {product.sizes.map((size) => {
-                  const sizeStock = getSizeStock(size);
-                  const isSizeSoldOut = sizeStock <= 0;
+                {product.sizes
+                  .sort((a: string, b: string) => Number(a) - Number(b))
+                  .map((size) => {
+                    const sizeStock = getSizeStock(size);
+                    const isSizeSoldOut = sizeStock <= 0;
 
-                  return (
-                    <button
-                      key={size}
-                      disabled={isSizeSoldOut}
-                      onClick={() => setSelectedSize(size)}
-                      className={`h-14 flex flex-col items-center justify-center rounded-2xl font-black text-sm transition-all border-2 relative overflow-hidden ${
-                        selectedSize === size
-                          ? "bg-black text-white border-black scale-105 shadow-xl"
-                          : isSizeSoldOut
-                          ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
-                          : "bg-white text-gray-700 border-gray-100 hover:border-black"
-                      }`}
-                    >
-                      <span>{size}</span>
-                      {isSizeSoldOut && (
-                        <span className="text-[8px] uppercase absolute bottom-1 opacity-60">
-                          Sold
-                        </span>
-                      )}
-                    </button>
-                  );
-                })}
+                    return (
+                      <button
+                        key={size}
+                        disabled={isSizeSoldOut}
+                        onClick={() => setSelectedSize(size)}
+                        className={`h-14 flex flex-col items-center justify-center rounded-2xl font-black text-sm transition-all border-2 relative overflow-hidden ${
+                          selectedSize === size
+                            ? "bg-black text-white border-black scale-105 shadow-xl"
+                            : isSizeSoldOut
+                            ? "bg-gray-50 text-gray-300 border-gray-100 cursor-not-allowed"
+                            : "bg-white text-gray-700 border-gray-100 hover:border-black"
+                        }`}
+                      >
+                        <span>{size}</span>
+                        {isSizeSoldOut && (
+                          <span className="text-[8px] uppercase absolute bottom-1 opacity-60">
+                            Sold
+                          </span>
+                        )}
+                      </button>
+                    );
+                  })}
               </div>
             </section>
 
