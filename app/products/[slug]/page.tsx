@@ -300,7 +300,7 @@ const ProductDetailPage = () => {
                   <span>
                     {isOutOfStock
                       ? "Restocking soon"
-                      : "Free global express shipping"}
+                      : "Available for shipping"}
                   </span>
                 </div>
                 <div className="flex items-center gap-3 text-xs font-bold uppercase tracking-wider text-gray-700">

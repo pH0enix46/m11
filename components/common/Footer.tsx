@@ -119,13 +119,13 @@ const Footer = () => {
               className="flex items-center gap-6 justify-center md:justify-start"
             >
               <a
-                href="#"
+                href="https://www.instagram.com/m11.bd?igsh=Ym0wdjFrNHl4Mnky"
                 className="text-black/40 hover:text-[#E60000] transition-colors duration-300"
               >
                 <HugeiconsIcon icon={InstaIcon} size={24} />
               </a>
               <a
-                href="#"
+                href="https://www.facebook.com/share/183oG2BsZm/"
                 className="text-black/40 hover:text-[#E60000] transition-colors duration-300"
               >
                 <HugeiconsIcon icon={FbIcon} size={24} />
