@@ -15,4 +15,5 @@ export interface Product {
   stock?: number;
   sizeStock?: { size: string; stock: number }[];
   tags?: string[];
+  serialNumber?: number;
 }

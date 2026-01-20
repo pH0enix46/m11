@@ -94,6 +94,9 @@ const ProductsPage = () => {
           return dateB - dateA;
         });
         break;
+      case "default":
+        filtered.sort((a, b) => (a.serialNumber || 0) - (b.serialNumber || 0));
+        break;
     }
 
     return filtered;
@@ -281,17 +284,17 @@ const ProductsPage = () => {
                             </span>
                           )}
                           {product.discountPrice &&
-                            product.discountPrice > 0 && (
-                              <span className="bg-red-600 text-white text-[11px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-sm">
-                                Save{" "}
-                                {Math.round(
-                                  ((product.price - product.discountPrice) /
-                                    product.price) *
-                                    100
-                                )}
-                                %
-                              </span>
-                            )}
+                          product.discountPrice > 0 ? (
+                            <span className="bg-red-600 text-white text-[11px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-sm">
+                              Save{" "}
+                              {Math.round(
+                                ((product.price - product.discountPrice) /
+                                  product.price) *
+                                  100
+                              )}
+                              %
+                            </span>
+                          ) : null}
                         </>
                       )}
                     </div>
