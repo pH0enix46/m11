@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "motion/react";
 import Image from "next/image";
 
 const images = [
-  "/Hero/m-landing-1.jpeg",
+  "/Hero/landing-hero.jpeg",
   "/Hero/m-landing-2.jpeg",
   "/Hero/m-landing-3.jpeg",
 ];
