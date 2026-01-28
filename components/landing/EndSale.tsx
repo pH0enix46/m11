@@ -20,6 +20,8 @@ const ProductCard = ({
   product: Product;
   index: number;
 }) => {
+  const isOutOfStock = product.stock === 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -30,14 +32,25 @@ const ProductCard = ({
     >
       <Link href={`/products/${product.slug}`} className="flex flex-col h-full">
         <div className="relative aspect-4/5 overflow-hidden rounded-2xl shadow-lg bg-slate-100">
-          {/* Option 2: Angled Cut Category Label */}
+          {/* 1. STOCK OUT CENTER OVERLAY (Visible on Hover) */}
+          {isOutOfStock && (
+            <div className="absolute inset-0 z-40 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 backdrop-blur-[2px]">
+              <span className="bg-white text-black px-6 py-3 rounded-full text-[10px] font-black uppercase tracking-[0.2em] shadow-2xl">
+                Stock Out
+              </span>
+            </div>
+          )}
+
+          {/* 2. CATEGORY LABEL (Top Right) */}
           <div className="absolute top-0 right-0 z-30">
             <div
               className={`
                 pl-6 pr-4 py-2 rounded-bl-[2rem] text-[10px] font-black uppercase tracking-widest
                 shadow-xl transition-all duration-500 group-hover:scale-105 origin-top-right
                 ${
-                  product.category === "Grand Series"
+                  isOutOfStock
+                    ? "bg-gray-300 text-gray-600 shadow-none"
+                    : product.category === "Grand Series"
                     ? "bg-[#E2FF3B] text-black italic shadow-[#E2FF3B]/20"
                     : "bg-white text-gray-900 shadow-black/5"
                 }
@@ -47,76 +60,119 @@ const ProductCard = ({
             </div>
           </div>
 
-          {/* Badges (Left Side) */}
+          {/* 3. BADGES (Top Left - Prioritized Logic) */}
           <div className="absolute top-4 left-4 z-20 flex flex-col items-start gap-2">
-            {product.badge && (
-              <span className="bg-[#E2FF3B] text-black text-[11px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-sm">
-                {product.badge}
+            {product.tags && product.tags.length > 0 ? (
+              /* Priority 1: Custom Tags */
+              product.tags.map((tag, i) => (
+                <span
+                  key={i}
+                  className="bg-black text-white text-[10px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-full ring-2 ring-white/10"
+                >
+                  {tag}
+                </span>
+              ))
+            ) : isOutOfStock ? (
+              /* Priority 2: Stock Out Badge */
+              <span className="bg-black text-white text-[10px] font-bold px-3 py-1.5 uppercase tracking-widest rounded-full ring-2 ring-white/20">
+                Stock Out
               </span>
-            )}
-            {product.discountPrice && product.discountPrice > 0 ? (
-              <span className="bg-red-600 text-white text-[11px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-sm">
-                Save{" "}
-                {Math.round(
-                  ((product.price - product.discountPrice) / product.price) *
-                    100
+            ) : (
+              /* Priority 3: Normal Badges & Savings */
+              <>
+                {product.badge && (
+                  <span className="bg-[#E2FF3B] text-black text-[11px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-sm">
+                    {product.badge}
+                  </span>
                 )}
-                %
-              </span>
-            ) : null}
+                {product.discountPrice && product.discountPrice > 0 ? (
+                  <span className="bg-red-600 text-white text-[11px] font-bold px-3 py-1 uppercase tracking-wider rounded-full shadow-sm">
+                    Save{" "}
+                    {Math.round(
+                      ((product.price - product.discountPrice) /
+                        product.price) *
+                        100
+                    )}
+                    %
+                  </span>
+                ) : null}
+              </>
+            )}
           </div>
 
-          {/* Image */}
+          {/* 4. IMAGE LOGIC (Grayscale if Stock Out) */}
           <div className="relative h-full w-full">
             <Image
               src={product.images[0]}
               alt={product.name}
               fill
-              className="object-cover transition-all duration-700 ease-in-out group-hover:scale-105"
+              className={`object-cover transition-all duration-700 ease-in-out ${
+                isOutOfStock ? "group-hover:scale-100" : "group-hover:scale-105"
+              }`}
             />
             {product.images[1] && (
               <Image
                 src={product.images[1]}
                 alt={`${product.name} hover`}
                 fill
-                className="absolute inset-0 object-cover opacity-0 transition-all duration-700 ease-in-out group-hover:opacity-100 group-hover:scale-105"
+                className={`absolute inset-0 object-cover transition-all duration-700 ease-in-out opacity-0 ${
+                  isOutOfStock
+                    ? ""
+                    : "group-hover:opacity-100 group-hover:scale-105"
+                }`}
               />
             )}
           </div>
 
-          {/* Hover Action Overlay */}
-          <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/5" />
-
-          {/* Quick Add Icon */}
-          <motion.div
-            className="absolute bottom-4 right-4 z-20 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
-            whileHover={{ scale: 1.1 }}
-            whileTap={{ scale: 0.9 }}
-          >
-            <div className="bg-white/90 backdrop-blur-md p-3 cursor-pointer shadow-lg rounded-full text-black hover:bg-black hover:text-white transition-colors duration-300">
-              <HugeiconsIcon icon={ShoppingBag01Icon} size={20} />
-            </div>
-          </motion.div>
+          {/* 5. HOVER ACTION (Quick Add - Hidden if Stock Out) */}
+          {!isOutOfStock && (
+            <>
+              <div className="absolute inset-0 bg-black/0 transition-colors duration-300 group-hover:bg-black/5" />
+              <motion.div
+                className="absolute bottom-4 right-4 z-20 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                whileHover={{ scale: 1.1 }}
+                whileTap={{ scale: 0.9 }}
+              >
+                <div className="bg-white/90 backdrop-blur-md p-3 cursor-pointer shadow-lg rounded-full text-black hover:bg-black hover:text-white transition-colors duration-300">
+                  <HugeiconsIcon icon={ShoppingBag01Icon} size={20} />
+                </div>
+              </motion.div>
+            </>
+          )}
         </div>
 
-        {/* Info Section */}
+        {/* 6. INFO SECTION */}
         <div className="mt-5 flex flex-col grow space-y-2">
           <div className="flex items-start justify-between gap-4">
-            <h3 className="flex-1 font-semibold text-gray-900 group-hover:text-red-600 transition-colors duration-300 min-h-[48px] line-clamp-2">
+            <h3
+              className={`flex-1 font-semibold transition-colors duration-300 min-h-[48px] line-clamp-2 ${
+                isOutOfStock
+                  ? "text-gray-400"
+                  : "text-gray-900 group-hover:text-red-600"
+              }`}
+            >
               {product.name}
             </h3>
             <div className="flex flex-col items-end shrink-0">
-              <span className="font-bold text-gray-900">
+              <span
+                className={`font-bold ${
+                  isOutOfStock ? "text-gray-400" : "text-gray-900"
+                }`}
+              >
                 ৳{product.discountPrice || product.price}
               </span>
-              {product.discountPrice && (
+              {product.discountPrice && !isOutOfStock && (
                 <span className="text-sm text-gray-400 line-through">
                   ৳{product.price}
                 </span>
               )}
             </div>
           </div>
-          <p className="text-xs text-gray-500 line-clamp-2 mt-auto">
+          <p
+            className={`text-xs line-clamp-2 mt-auto ${
+              isOutOfStock ? "text-gray-300" : "text-gray-500"
+            }`}
+          >
             {product.description}
           </p>
         </div>
