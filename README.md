@@ -15,8 +15,8 @@ A high-end, minimalist e-commerce platform dedicated to handcrafted premium leat
 
 ## 📸 Project Preview
 
-[Admin Panel](./public/1.png)
+![Admin Panel](./public/1.png)
 
-[Admin Panel](./public/2.png)
+![Admin Panel](./public/2.png)
 
-[Side Cart](./public/3.png)
+![Side Cart](./public/3.png)
